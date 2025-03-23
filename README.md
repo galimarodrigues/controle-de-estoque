@@ -6,6 +6,7 @@ Este é um projeto de controle de estoque para uma cafeteria, desenvolvido em Py
 
 - Python
 - Django
+- Bootstrap
 - MySQL
 - Git
 - GitHub
