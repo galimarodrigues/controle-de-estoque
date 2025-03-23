@@ -15,6 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from estoque import views
+
+handler404 = views.page_not_found
+handler500 = views.server_error
+handler401 = views.permission_denied
 
 urlpatterns = [
     path('admin/', admin.site.urls),
