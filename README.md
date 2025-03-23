@@ -118,35 +118,3 @@ Para contribuir com o projeto, siga estas etapas:
 4. Push para o seu repositório e abra um Pull Request.
 
 Aguarde a aprovação do seu Pull Request antes de integrar suas alterações ao projeto.
-
-### Estrutura do Projeto
-```
-controle-de-estoque-pi/
-│
-├── manage.py                  # Arquivo principal do Django
-├── requirements.txt           # Dependências do projeto
-│
-├── estoque/                   # Diretório principal do aplicativo de controle de estoque
-│   ├── migrations/            # Migrações do banco de dados
-│   ├── __init__.py            # Inicialização do aplicativo
-│   ├── admin.py               # Configurações do painel de administração
-│   ├── apps.py                # Configuração do app
-│   ├── models.py              # Modelos de banco de dados
-│   ├── tests.py               # Testes automatizados
-│   ├── views.py               # Lógica das views
-│   └── urls.py                # Definição das URLs do aplicativo
-│
-├── templates/                 # Diretório global para templates Django
-│   ├── base.html              # Template base com estrutura comum (cabeçalho, rodapé, etc.)
-│   └── estoque/               # Subdiretório para templates específicos do app 'estoque'
-│       ├── index.html         # Template para a página inicial
-│       ├── listar_estoque.html# Template para a listagem de itens no estoque
-│       └── adicionar_item.html# Template para adicionar um item ao estoque
-│
-├── static/                    # Diretório para arquivos estáticos (CSS, JS, imagens)
-│   ├── css/                   # Arquivos CSS
-│   │   └── style.css          # Estilo CSS principal
-│   └── assets/                   # Imagens usadas no site
-│
-└── venv/                      # Ambiente virtual Python
-```
