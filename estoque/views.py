@@ -11,3 +11,9 @@ def permission_denied(request, exception):
 
 def index(request):
     return render(request, 'base.html')
+
+def charts(request):
+    return render(request, 'charts.html')
+
+def tables(request):
+    return render(request, 'tables.html')
