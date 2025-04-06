@@ -23,5 +23,6 @@ handler401 = views.permission_denied
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.index, name='index'),
     path('estoque/', include('estoque.urls')),
 ]
