@@ -2,6 +2,13 @@
 
 Este é um projeto de controle de estoque para uma cafeteria, desenvolvido em Python com Django, utilizando MySQL como banco de dados. O objetivo deste projeto é gerenciar o estoque de produtos (como café, salgados, refrigerantes) e controlar a entrada e saída desses produtos.
 
+#####Projeto Integrador - UNIVESP (Universidade Virtual do Estado de São Paulo)
+Este projeto foi desenvolvido como parte da disciplina de Projeto Integrador da UNIVESP (Universidade Virtual do Estado de São Paulo), cujo tema é:
+
+    "Desenvolvimento de um software com framework web que utilize noções de banco de dados, praticando controle de versão."
+
+O Projeto Integrador tem como objetivo propor uma solução tecnológica para um problema real de uma empresa, instituição pública, ONG ou comunidade. Neste caso, a aplicação foi pensada como uma ferramenta de apoio à gestão de estoque de uma cafeteria, podendo ser adaptada a diversos outros tipos de estabelecimentos com necessidades semelhantes.
+
 ## Tecnologias Utilizadas
 
 - Python
