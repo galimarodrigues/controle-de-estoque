@@ -15,9 +15,26 @@ def permission_denied(request, exception):
 
 # Main pages
 def index(request):
-    produtos = Produto.objects.all()
     categorias = Categoria.objects.all()
-    return render(request, 'base.html', {'produtos': produtos, 'categorias': categorias})
+    produtos = Produto.objects.all()
+
+    # Prepare data for charts
+    category_names = [categoria.nome for categoria in categorias]
+    product_quantities = [
+        produtos.filter(categoria=categoria).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
+        for categoria in categorias
+    ]
+    stock_values = [
+        float(sum(produto.quantidade * produto.preco for produto in produtos.filter(categoria=categoria)))
+        for categoria in categorias
+    ]
+
+    return render(request, 'base.html', {
+        'produtos': produtos,
+        'categorias': category_names,
+        'product_quantities': product_quantities,
+        'stock_values': stock_values
+    })
 
 def charts(request):
     categorias = Categoria.objects.all()
