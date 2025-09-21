@@ -24,16 +24,16 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                            <a class="nav-link" href="/">
+                            <a tabindex="0" class="nav-link" href="/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Painel de Controle
                             </a>
                             <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a class="nav-link" href="/estoque/graficos/">
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Gráficos
                             </a>
-                            <a class="nav-link" href="/estoque/tabelas/">
+                            <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Estoque
                             </a>
@@ -57,7 +57,8 @@
                                         Quantidade de Produtos por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryBarChart" style="height: 300px;"></canvas>
+                                        <!-- ADICIONAR DESCRICAO -->
+                                        <canvas tabindex="1" id="categoryBarChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -68,7 +69,7 @@
                                         Valor Total do Estoque por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryPieChart" style="height: 300px;"></canvas>
+                                        <canvas tabindex="1" id="categoryPieChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
                             </div>

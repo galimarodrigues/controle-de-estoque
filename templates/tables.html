@@ -23,16 +23,16 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                            <a class="nav-link" href="/">
+                            <a tabindex="0" class="nav-link" href="/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Painel de Controle
                             </a>
                             <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a class="nav-link" href="/estoque/graficos/">
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Gráficos
                             </a>
-                            <a class="nav-link" href="/estoque/tabelas/">
+                            <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Estoque
                             </a>
@@ -50,15 +50,15 @@
                         </ol>
                         <div class="mb-4">
                             <h5>Gerenciar Categorias</h5>
-                            <button class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
-                            <button class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
-                            <button class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
+                            <button tabindex="1" class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
+                            <button tabindex="1" class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
+                            <button tabindex="1" class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
                         </div>
                         <div class="mb-4">
                             <h5>Gerenciar Produtos</h5>
-                            <button class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
-                            <button class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
-                            <button class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
+                            <button tabindex="2" class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
+                            <button tabindex="2" class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
+                            <button tabindex="2" class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
                         </div>
                         <div id="categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
@@ -230,7 +230,7 @@
                                 Produtos no Estoque
                             </div>
                             <div class="card-body">
-                                <table id="datatablesSimple">
+                                <table tabindex="2" id="datatablesSimple">
                                     <thead>
                                         <tr>
                                             <th>Nome</th>

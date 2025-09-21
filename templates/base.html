@@ -45,7 +45,7 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                                <a class="nav-link" href="/">
+                                <a class="nav-link" tabindex="0" href="/">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                     Painel de Controle
                                 </a>
@@ -87,11 +87,11 @@
 {#                                </nav>#}
 {#                            </div>#}
                             <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a class="nav-link" href="/estoque/graficos/">
+                            <a class="nav-link" tabindex="0" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Gráficos
                             </a>
-                            <a class="nav-link" href="/estoque/tabelas/">
+                            <a class="nav-link" tabindex="0" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Estoque
                             </a>
@@ -156,7 +156,8 @@
                                         Quantidade de Produtos por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryBarChart" style="height: 300px;"></canvas>
+                                        <!-- COLOCAR DESCRICAO -->
+                                        <canvas tabindex="1" id="categoryBarChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -167,7 +168,8 @@
                                         Valor Total do Estoque por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryPieChart" style="height: 300px;"></canvas>
+                                        <!-- COLOCAR DESCRICAO -->
+                                        <canvas tabindex="1" id="categoryPieChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -181,7 +183,7 @@
                                 Produtos no Estoque
                             </div>
                             <div class="card-body">
-                                <table id="datatablesSimple">
+                                <table tabindex="2" id="datatablesSimple">
                                     <thead>
                                         <tr>
                                             <th>Nome</th>
