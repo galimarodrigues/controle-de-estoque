@@ -50,15 +50,15 @@
                         </ol>
                         <div class="mb-4">
                             <h5>Gerenciar Categorias</h5>
-                            <button tabindex="1" class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
-                            <button tabindex="1" class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
-                            <button tabindex="1" class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
+                            <button tabindex="0" class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
+                            <button tabindex="0" class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
+                            <button tabindex="0" class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
                         </div>
                         <div class="mb-4">
                             <h5>Gerenciar Produtos</h5>
-                            <button tabindex="2" class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
-                            <button tabindex="2" class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
-                            <button tabindex="2" class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
+                            <button tabindex="0" class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
+                            <button tabindex="0" class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
+                            <button tabindex="0" class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
                         </div>
                         <div id="categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
@@ -84,11 +84,11 @@
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-nome" class="form-label">Nome do Produto</label>
-                                        <input type="text" class="form-control" id="produto-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-nome" name="nome" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-categoria" class="form-label">Categoria</label>
-                                        <select class="form-control" id="produto-categoria" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="produto-categoria" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -96,17 +96,17 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-preco" class="form-label">Preço</label>
-                                        <input type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input type="number" class="form-control" id="produto-quantidade" name="quantidade" required />
+                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-unidade" class="form-label">Unidade</label>
-                                        <input type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
                                     </div>
-                                    <button type="submit" class="btn btn-success">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-success">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -119,7 +119,7 @@
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-remover" class="form-label">Produto</label>
-                                        <select class="form-control" id="produto-remover" name="produto" required>
+                                        <select tabindex="0" class="form-control" id="produto-remover" name="produto" required>
                                             {% for produto in produtos %}
                                             <option value="{{ produto.id }}">{{ produto.nome }}</option>
                                             {% endfor %}
@@ -127,13 +127,13 @@
                                     </div>
                                     <div class="mb-3" id="quantidade-container">
                                         <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input type="number" class="form-control" id="produto-quantidade" name="quantidade" />
+                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" />
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="remover-tudo" name="remover_tudo" onclick="toggleQuantidade()">
+                                        <input tabindex="0" class="form-check-input" type="checkbox" id="remover-tudo" name="remover_tudo" onclick="toggleQuantidade()">
                                         <label class="form-check-label" for="remover-tudo">Excluir Produto</label>
                                     </div>
-                                    <button type="submit" class="btn btn-danger">Remover</button>
+                                    <button tabindex="0" type="submit" class="btn btn-danger">Remover</button>
                                 </form>
                             </div>
                         </div>
@@ -146,13 +146,13 @@
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-remover" class="form-label">Categoria</label>
-                                        <select class="form-control" id="categoria-remover" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="categoria-remover" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-warning">Remover</button>
+                                    <button tabindex="0" type="submit" class="btn btn-warning">Remover</button>
                                 </form>
                             </div>
                         </div>
@@ -165,7 +165,7 @@
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-editar" class="form-label">Categoria</label>
-                                        <select class="form-control" id="categoria-editar" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="categoria-editar" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -173,9 +173,9 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="categoria-nome" class="form-label">Novo Nome</label>
-                                        <input type="text" class="form-control" id="categoria-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="categoria-nome" name="nome" required />
                                     </div>
-                                    <button type="submit" class="btn btn-info">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -189,7 +189,7 @@
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-editar" class="form-label">Produto</label>
-                                        <select class="form-control" id="produto-editar" name="produto" required>
+                                        <select tabindex="0" class="form-control" id="produto-editar" name="produto" required>
                                             {% for produto in produtos %}
                                             <option value="{{ produto.id }}">{{ produto.nome }}</option>
                                             {% endfor %}
@@ -197,11 +197,11 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-nome" class="form-label">Novo Nome</label>
-                                        <input type="text" class="form-control" id="produto-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-nome" name="nome" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-categoria" class="form-label">Nova Categoria</label>
-                                        <select class="form-control" id="produto-categoria" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="produto-categoria" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -209,13 +209,13 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-preco" class="form-label">Novo Preço</label>
-                                        <input type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-unidade" class="form-label">Nova Unidade</label>
-                                        <input type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
                                     </div>
-                                    <button type="submit" class="btn btn-info">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -230,7 +230,7 @@
                                 Produtos no Estoque
                             </div>
                             <div class="card-body">
-                                <table tabindex="2" id="datatablesSimple">
+                                <table tabindex="0" id="datatablesSimple">
                                     <thead>
                                         <tr>
                                             <th>Nome</th>
