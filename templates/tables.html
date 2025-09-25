@@ -65,7 +65,7 @@
                                 <i class="fas fa-plus me-1"></i> Adicionar Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/add_categoria/">
+                                <form method="post" action="/estoque/add_categoria/" aria-label="Adicionar Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-nome" class="form-label">Nome da Categoria</label>
@@ -80,7 +80,7 @@
                                 <i class="fas fa-plus me-1"></i> Adicionar Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/add_produto/">
+                                <form method="post" action="/estoque/add_produto/" aria-label="Adicionar Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-nome" class="form-label">Nome do Produto</label>
@@ -115,7 +115,7 @@
                                 <i class="fas fa-minus me-1"></i> Saída Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/remover_produto/">
+                                <form method="post" action="/estoque/remover_produto/" aria-label="Remover Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-remover" class="form-label">Produto</label>
@@ -142,7 +142,7 @@
                                 <i class="fas fa-minus me-1"></i> Remover Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/remover_categoria/">
+                                <form method="post" action="/estoque/remover_categoria/" aria-label="Remover Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-remover" class="form-label">Categoria</label>
@@ -161,7 +161,7 @@
                                 <i class="fas fa-edit me-1"></i> Editar Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/editar_categoria/">
+                                <form method="post" action="/estoque/editar_categoria/" aria-label="Editar Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-editar" class="form-label">Categoria</label>
@@ -185,7 +185,7 @@
                                 <i class="fas fa-edit me-1"></i> Editar Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/editar_produto/">
+                                <form method="post" action="/estoque/editar_produto/" aria-label="Editar Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-editar" class="form-label">Produto</label>
