@@ -1,147 +1,156 @@
 # Controle de Estoque - Cafeteria
 
-Este é um projeto de controle de estoque para uma cafeteria, desenvolvido em Python com Django, utilizando PostgreSQL como banco de dados. O objetivo deste projeto é gerenciar o estoque de produtos (como café, salgados, refrigerantes) e controlar a entrada e saída desses produtos.
+Aplicação Django para controle de estoque de uma cafeteria. Suporta execução local com PostgreSQL e deploy em produção via Railway.
 
-#### Projeto Integrador - UNIVESP (Universidade Virtual do Estado de São Paulo)
-Este projeto foi desenvolvido como parte da disciplina de Projeto Integrador da UNIVESP (Universidade Virtual do Estado de São Paulo), cujo tema é:
-
-    "Desenvolvimento de um software com framework web que utilize noções de banco de dados, praticando controle de versão."
-
-O Projeto Integrador tem como objetivo propor uma solução tecnológica para um problema real de uma empresa, instituição pública, ONG ou comunidade. Neste caso, a aplicação foi pensada como uma ferramenta de apoio à gestão de estoque de uma cafeteria, podendo ser adaptada a diversos outros tipos de estabelecimentos com necessidades semelhantes.
-
-## Tecnologias Utilizadas
-
-- Python
+## Tecnologias
+- Python 3.10+
 - Django
-- Bootstrap
 - PostgreSQL
+- Bootstrap 5
+- WhiteNoise (estáticos em produção)
+
+## Requisitos
+- Python 3.10+
+- PostgreSQL 13+
 - Git
-- GitHub
 
-## Pré-Requisitos
+Opcional (GUI): pgAdmin.
 
-Antes de começar, você precisa ter instalado em sua máquina:
+---
 
-- Python 3.8+ — https://www.python.org/downloads/
-- PostgreSQL 13+ — https://www.postgresql.org/download/
-- Git — https://git-scm.com/
+## Como rodar LOCALMENTE (usando PostgreSQL, não SQLite)
 
-## Passos para Rodar o Projeto
+A aplicação lê as configurações via variáveis de ambiente (.env). O banco local é configurado pela variável `DATABASE_URL`.
 
-Siga os passos abaixo para configurar o projeto em sua máquina.
+1) Clonar o repositório
 
-### 1. Clonar o Repositório
-
-```bash
-git clone git@github.com:galimarodrigues/controle-de-estoque.git
+```bat
+git clone https://github.com/galimarodrigues/controle-de-estoque.git
 cd controle-de-estoque
 ```
 
-### 2. Criar e Ativar o Ambiente Virtual
+2) Criar e ativar o ambiente virtual
 
-- Linux / macOS:
+- Windows (cmd):
+```bat
+py -3 -m venv venv
+venv\Scripts\activate
+```
+- Linux/macOS:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-- Windows (cmd):
-```bat
-py -3 -m venv venv
-.\venv\Scripts\activate
-```
-
-### 3. Instalar Dependências
-
+3) Instalar dependências
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Instalar e Preparar o PostgreSQL
+4) Instalar e iniciar o PostgreSQL
+- Baixe e instale: https://www.postgresql.org/download/
+- Guarde a senha do usuário `postgres` definida na instalação (porta padrão: 5432).
+- (Windows) Para usar o `psql` no terminal, adicione o diretório `bin` do PostgreSQL ao PATH.
 
-1) Instale o PostgreSQL a partir do site oficial. Durante a instalação, anote a senha do usuário padrão "postgres". A porta padrão é 5432.
-
-2) (Windows) Adicione o PostgreSQL ao PATH para poder usar o comando `psql` no terminal:
-- Caminho típico: `C:\\Program Files\\PostgreSQL\\<versão>\\bin`
-- Passos: Configurações do Windows → Sistema → Sobre → Configurações avançadas do sistema → Variáveis de Ambiente → selecione `Path` → Editar → Novo → cole o caminho do `bin` do PostgreSQL → OK.
-- Valide em um novo terminal:
-```bat
-psql --version
-```
-
-3) Crie o banco de dados do projeto (escolha uma opção):
+5) Criar o banco de dados local
 - Via terminal (psql):
 ```bat
-psql -U postgres -h localhost -c "CREATE DATABASE estoque_db;"
+psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE estoque_db;"
 ```
-- Via pgAdmin: abra o pgAdmin, conecte em localhost, clique com o botão direito em Databases → Create → Database… → Nome: `estoque_db`.
+- Via pgAdmin: Databases → Create → Database… → Name: `estoque_db`.
 
-### 5. Configurar o Banco no Django (`cafeteria/settings.py`)
-
-Confirme/ajuste a configuração do banco conforme abaixo (altere a senha conforme a sua instalação):
-
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'estoque_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',  # ajuste para a sua senha
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+6) Configurar variáveis de ambiente (.env)
+- Copie o exemplo e ajuste conforme suas credenciais locais:
+```bat
+copy .env.example .env
 ```
+- Edite `.env` e garanta algo como:
+```
+SECRET_KEY=dev-change-me
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1,http://localhost
+DATABASE_URL=postgres://postgres:SUASENHA@localhost:5432/estoque_db
+```
+Obs.: Troque `SUASENHA` pela senha do usuário postgres que você definiu.
 
-### 6. Rodar as Migrações
-
+7) Aplicar migrações e (opcional) criar superusuário
 ```bash
-python manage.py makemigrations
 python manage.py migrate
-```
-
-### 7. Criar Superusuário (opcional, para acessar o admin)
-
-```bash
 python manage.py createsuperuser
 ```
 
-### 8. Rodar o Servidor de Desenvolvimento
-
+8) Rodar o servidor de desenvolvimento
 ```bash
 python manage.py runserver
 ```
+Acesse: http://127.0.0.1:8000/
 
-A aplicação estará disponível em http://127.0.0.1:8000/.
+---
 
-## Observações sobre a migração (MySQL → PostgreSQL)
+## Deploy na Railway
 
-- Os dados do MySQL não são transferidos automaticamente. Se necessário, recrie categorias e produtos manualmente na interface web ou use um processo de exportação/importação.
-- Certifique-se de que o `psycopg2-binary` está instalado (já listado no `requirements.txt`).
+Este projeto já está pronto para deploy na Railway usando `Procfile`, `dj-database-url` e variáveis de ambiente. Passos resumidos:
 
-## Solução de Problemas
+1) Subir o código para o GitHub (público ou privado)
 
-- `psql` não é reconhecido: adicione o diretório `bin` do PostgreSQL ao `PATH` (veja a seção 4.2) e abra um novo terminal.
-- Erro de conexão (OperationalError): verifique usuário, senha, host/porta e se o serviço PostgreSQL está em execução.
-- Problemas em migrações: execute novamente `python manage.py makemigrations` e `python manage.py migrate`; verifique conflitos em apps.
+2) Criar o projeto na Railway
+- Acesse https://railway.app
+- New Project → Deploy from GitHub → selecione este repositório.
 
-### Estrutura do Projeto
+3) Adicionar o PostgreSQL na Railway
+- No projeto, adicione o Add-on: PostgreSQL.
+- A Railway criará a variável `DATABASE_URL` automaticamente apontando para o banco.
+
+4) Configurar variáveis de ambiente na Railway
+- Em Settings → Variables, configure:
+  - `SECRET_KEY` = uma chave forte e secreta
+  - `DEBUG` = `False`
+  - `ALLOWED_HOSTS` = `.up.railway.app,seu-dominio.com,www.seu-dominio.com`
+  - `CSRF_TRUSTED_ORIGINS` = `https://<seu-subdominio>.up.railway.app,https://seu-dominio.com,https://www.seu-dominio.com`
+  - `DATABASE_URL` = já fornecida pelo add-on de Postgres
+
+5) Deploy
+- Abra a aba Deploy e aguarde a publicação.
+- O `Procfile` executa automaticamente: migrações, coleta de estáticos e inicia o Gunicorn:
+  - `python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn cafeteria.wsgi:application --bind 0.0.0.0:$PORT`
+
+6) Acessar
+- Use a URL pública mostrada na Railway (ex.: `https://<app>.up.railway.app`).
+
+Dica: Para criar um superusuário em produção, você pode abrir um shell na Railway (ou usar o Deploy tab com um "Run Command") e executar `python manage.py createsuperuser`.
+
+---
+
+## Como a configuração funciona
+
+- `cafeteria/settings.py` utiliza `dj-database-url` e prioriza `DATABASE_URL` (Railway e local). Se `DATABASE_URL` não estiver setada, cai para SQLite apenas como fallback. Como aqui queremos Postgres local, mantenha `DATABASE_URL` definida no seu `.env`.
+- Estáticos em produção são servidos via WhiteNoise (`STATIC_ROOT` + `collectstatic`).
+- Segurança:
+  - `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS` devem incluir seus domínios.
+  - Em produção (`DEBUG=False`), cookies e redirecionamento para HTTPS estão habilitados.
+
+---
+
+## Solução de problemas
+
+- DisallowedHost: adicione seu domínio em `ALLOWED_HOSTS`.
+- Erros de CSRF em produção: defina `CSRF_TRUSTED_ORIGINS` com o esquema (`https://`), incluindo o domínio da Railway.
+- Erro de conexão ao Postgres local: confirme usuário/senha/porta, se o serviço está ativo e se `DATABASE_URL` está correto.
+- Arquivos estáticos 404 em produção: confira logs da `collectstatic`; o `Procfile` já roda `collectstatic` a cada deploy.
+
+---
+
+## Estrutura do projeto
 ```
 controle-de-estoque/
-│
-├── manage.py                  # Arquivo principal do Django
-├── requirements.txt           # Dependências do projeto
-│
-├── cafeteria/                 # Configurações do projeto Django
-│   └── settings.py            # Configuração do banco e apps
-│
-├── estoque/                   # App de controle de estoque
-│   ├── migrations/            # Migrações do banco de dados
-│   ├── models.py              # Modelos de banco de dados
-│   ├── views.py               # Lógica das views
-│   └── urls.py                # URLs do app
-│
-├── templates/                 # Templates Django (HTML)
-├── static/                    # Arquivos estáticos (CSS, JS, imagens)
-└── venv/                      # Ambiente virtual (local)
+├── manage.py
+├── Procfile
+├── requirements.txt
+├── runtime.txt
+├── cafeteria/
+│   └── settings.py
+├── estoque/
+├── static/
+└── templates/
 ```

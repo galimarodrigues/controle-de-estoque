@@ -20,5 +20,5 @@ Thumbs.db
 .idea/
 *.iml
 
-*.env
-*.env.*
+.env
+.env/

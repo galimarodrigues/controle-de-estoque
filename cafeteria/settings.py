@@ -14,6 +14,13 @@ from pathlib import Path
 import os
 import dj_database_url
 
+# Load variables from .env when available (local/dev convenience)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -80,19 +87,16 @@ WSGI_APPLICATION = 'cafeteria.wsgi.application'
 
 
 # Database
-# Prefer DATABASE_URL if present (e.g., provided by Railway); otherwise fallback to local Postgres settings
+# Prefer DATABASE_URL if present (e.g., provided by Railway); otherwise fallback to local SQLite for dev
 DATABASES = {}
-_db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=not DEBUG)
-if _db_from_env:
-    DATABASES['default'] = _db_from_env
+_db_url = os.environ.get('DATABASE_URL')
+if _db_url:
+    # Use SSL in production (DEBUG=False) which sets sslmode=require
+    DATABASES['default'] = dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=not DEBUG)
 else:
     DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'estoque_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 
 
