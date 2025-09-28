@@ -1,6 +1,6 @@
 # Controle de Estoque - Cafeteria
 
-Este é um projeto de controle de estoque para uma cafeteria, desenvolvido em Python com Django, utilizando MySQL como banco de dados. O objetivo deste projeto é gerenciar o estoque de produtos (como café, salgados, refrigerantes) e controlar a entrada e saída desses produtos.
+Este é um projeto de controle de estoque para uma cafeteria, desenvolvido em Python com Django, utilizando PostgreSQL como banco de dados. O objetivo deste projeto é gerenciar o estoque de produtos (como café, salgados, refrigerantes) e controlar a entrada e saída desses produtos.
 
 #### Projeto Integrador - UNIVESP (Universidade Virtual do Estado de São Paulo)
 Este projeto foi desenvolvido como parte da disciplina de Projeto Integrador da UNIVESP (Universidade Virtual do Estado de São Paulo), cujo tema é:
@@ -14,7 +14,7 @@ O Projeto Integrador tem como objetivo propor uma solução tecnológica para um
 - Python
 - Django
 - Bootstrap
-- MySQL
+- PostgreSQL
 - Git
 - GitHub
 
@@ -22,139 +22,126 @@ O Projeto Integrador tem como objetivo propor uma solução tecnológica para um
 
 Antes de começar, você precisa ter instalado em sua máquina:
 
-- [Python 3.8+](https://www.python.org/downloads/)
-- [MySQL 5.7+](https://dev.mysql.com/downloads/)
-- [Git](https://git-scm.com/)
+- Python 3.8+ — https://www.python.org/downloads/
+- PostgreSQL 13+ — https://www.postgresql.org/download/
+- Git — https://git-scm.com/
 
 ## Passos para Rodar o Projeto
 
 Siga os passos abaixo para configurar o projeto em sua máquina.
 
-### 1. Clonando o Repositório
-
-Clone o repositório para sua máquina local utilizando o comando Git:
+### 1. Clonar o Repositório
 
 ```bash
 git clone git@github.com:galimarodrigues/controle-de-estoque.git
-```
-
-### 2. Criando o Ambiente Virtual
-
-Após clonar o repositório, acesse o diretório do projeto e crie um ambiente virtual para isolar as dependências do projeto:
-
-```bash
 cd controle-de-estoque
-python3 -m venv venv
 ```
 
-### 3. Ativando o Ambiente Virtual
-
-Ative o ambiente virtual criado. O comando varia dependendo do seu sistema operacional:
+### 2. Criar e Ativar o Ambiente Virtual
 
 - Linux / macOS:
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
-- Windows:
-```bash
+- Windows (cmd):
+```bat
+py -3 -m venv venv
 .\venv\Scripts\activate
 ```
 
-### 4. Instalando Dependências
-Instale as dependências do projeto usando o arquivo requirements.txt:
+### 3. Instalar Dependências
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Configurando o Banco de Dados
-1. ##### Criando o Banco de Dados MySQL:
-    Certifique-se de ter o MySQL instalado e em execução. Crie o banco de dados com o nome estoque_db:
-    ```bash
-    CREATE DATABASE estoque_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    ```
+### 4. Instalar e Preparar o PostgreSQL
 
-2. ##### Configuração do settings.py:
-    No arquivo settings.py do Django, no diretório cafeteria, configure as credenciais do seu banco de dados MySQL:
-    ```bash
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'estoque_db',  # Nome do banco de dados
-            'USER': 'root',         # Usuário do MySQL
-            'PASSWORD': 'root',     # Senha do MySQL
-            'HOST': 'localhost',    # Se o MySQL estiver local
-            'PORT': '3306',         # Porta padrão do MySQL
-        }
+1) Instale o PostgreSQL a partir do site oficial. Durante a instalação, anote a senha do usuário padrão "postgres". A porta padrão é 5432.
+
+2) (Windows) Adicione o PostgreSQL ao PATH para poder usar o comando `psql` no terminal:
+- Caminho típico: `C:\\Program Files\\PostgreSQL\\<versão>\\bin`
+- Passos: Configurações do Windows → Sistema → Sobre → Configurações avançadas do sistema → Variáveis de Ambiente → selecione `Path` → Editar → Novo → cole o caminho do `bin` do PostgreSQL → OK.
+- Valide em um novo terminal:
+```bat
+psql --version
+```
+
+3) Crie o banco de dados do projeto (escolha uma opção):
+- Via terminal (psql):
+```bat
+psql -U postgres -h localhost -c "CREATE DATABASE estoque_db;"
+```
+- Via pgAdmin: abra o pgAdmin, conecte em localhost, clique com o botão direito em Databases → Create → Database… → Nome: `estoque_db`.
+
+### 5. Configurar o Banco no Django (`cafeteria/settings.py`)
+
+Confirme/ajuste a configuração do banco conforme abaixo (altere a senha conforme a sua instalação):
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'estoque_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',  # ajuste para a sua senha
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
-    ```
+}
+```
 
-### 6. Rodando as Migrações
-Antes de rodar o comando migrate, é importante rodar o comando makemigrations para criar arquivos de migração sempre que você fizer alterações nos modelos (models) do Django.
-
-##### Rodando makemigrations
-Para criar os arquivos de migração a partir de qualquer alteração nos modelos:
+### 6. Rodar as Migrações
 
 ```bash
 python manage.py makemigrations
-```
-
-##### Rodando migrate
-Agora, rode as migrações para aplicar as alterações no banco de dados:
-
-```bash
 python manage.py migrate
 ```
 
-### 7. Rodando o Servidor de Desenvolvimento
-Após realizar as migrações, inicie o servidor de desenvolvimento do Django:
+### 7. Criar Superusuário (opcional, para acessar o admin)
+
+```bash
+python manage.py createsuperuser
+```
+
+### 8. Rodar o Servidor de Desenvolvimento
 
 ```bash
 python manage.py runserver
 ```
 
-O servidor estará rodando em http://127.0.0.1:8000/.
+A aplicação estará disponível em http://127.0.0.1:8000/.
 
-## Contribuições
+## Observações sobre a migração (MySQL → PostgreSQL)
 
-Para contribuir com o projeto, siga estas etapas:
+- Os dados do MySQL não são transferidos automaticamente. Se necessário, recrie categorias e produtos manualmente na interface web ou use um processo de exportação/importação.
+- Certifique-se de que o `psycopg2-binary` está instalado (já listado no `requirements.txt`).
 
-1. Faça um fork do repositório.
-2. Crie uma branch para sua funcionalidade ou correção.
-3. Realize suas modificações e faça o commit.
-4. Push para o seu repositório e abra um Pull Request.
+## Solução de Problemas
 
-Aguarde a aprovação do seu Pull Request antes de integrar suas alterações ao projeto.
+- `psql` não é reconhecido: adicione o diretório `bin` do PostgreSQL ao `PATH` (veja a seção 4.2) e abra um novo terminal.
+- Erro de conexão (OperationalError): verifique usuário, senha, host/porta e se o serviço PostgreSQL está em execução.
+- Problemas em migrações: execute novamente `python manage.py makemigrations` e `python manage.py migrate`; verifique conflitos em apps.
 
 ### Estrutura do Projeto
 ```
-controle-de-estoque-pi/
+controle-de-estoque/
 │
 ├── manage.py                  # Arquivo principal do Django
 ├── requirements.txt           # Dependências do projeto
 │
-├── estoque/                   # Diretório principal do aplicativo de controle de estoque
+├── cafeteria/                 # Configurações do projeto Django
+│   └── settings.py            # Configuração do banco e apps
+│
+├── estoque/                   # App de controle de estoque
 │   ├── migrations/            # Migrações do banco de dados
-│   ├── __init__.py            # Inicialização do aplicativo
-│   ├── admin.py               # Configurações do painel de administração
-│   ├── apps.py                # Configuração do app
 │   ├── models.py              # Modelos de banco de dados
-│   ├── tests.py               # Testes automatizados
 │   ├── views.py               # Lógica das views
-│   └── urls.py                # Definição das URLs do aplicativo
+│   └── urls.py                # URLs do app
 │
-├── templates/                 # Diretório global para templates Django
-│   ├── base.html              # Template base com estrutura comum (cabeçalho, rodapé, etc.)
-│   └── estoque/               # Subdiretório para templates específicos do app 'estoque'
-│       ├── index.html         # Template para a página inicial
-│       ├── listar_estoque.html# Template para a listagem de itens no estoque
-│       └── adicionar_item.html# Template para adicionar um item ao estoque
-│
-├── static/                    # Diretório para arquivos estáticos (CSS, JS, imagens)
-│   ├── css/                   # Arquivos CSS
-│   │   └── style.css          # Estilo CSS principal
-│   └── assets/                   # Imagens usadas no site
-│
-└── venv/                      # Ambiente virtual Python
+├── templates/                 # Templates Django (HTML)
+├── static/                    # Arquivos estáticos (CSS, JS, imagens)
+└── venv/                      # Ambiente virtual (local)
 ```
