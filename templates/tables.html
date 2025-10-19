@@ -50,16 +50,17 @@
                         </ol>
                         <div class="mb-4">
                             <h5>Gerenciar Categorias</h5>
-                            <button tabindex="0" class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
-                            <button tabindex="0" class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
-                            <button tabindex="0" class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria </button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-warning" onclick="toggleForm(this, 'remover-categoria-form')">Remover Categoria</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-categoria-form')">Editar Categoria</button>
                         </div>
                         <div class="mb-4">
                             <h5>Gerenciar Produtos</h5>
-                            <button tabindex="0" class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
-                            <button tabindex="0" class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
-                            <button tabindex="0" class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-success" onclick="toggleForm(this, 'produto-form')">Adicionar Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-danger" onclick="toggleForm(this, 'remover-produto-form')">Saída Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-produto-form')">Editar Produto</button>
                         </div>
+
                         <div id="categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
                                 <i class="fas fa-plus me-1"></i> Adicionar Categoria
@@ -71,7 +72,7 @@
                                         <label for="categoria-nome" class="form-label">Nome da Categoria</label>
                                         <input type="text" class="form-control" id="categoria-nome" name="nome" required />
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-primary">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -298,7 +299,10 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
         <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
         <script>
-            function toggleForm(formId) {
+            function toggleForm(button, formId) {
+                const isPressed = button.getAttribute('aria-pressed') === 'true';
+                button.setAttribute('aria-pressed', !isPressed);
+
                 const form = document.getElementById(formId);
                 form.style.display = form.style.display === 'none' ? 'block' : 'none';
             }
