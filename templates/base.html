@@ -196,28 +196,20 @@
                                 <table tabindex="0" id="datatablesSimple">
                                     <thead>
                                         <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
+                                            <th scope="col">Nome</th>
+                                            <th scope="col">Categoria</th>
+                                            <th scope="col">Preço</th>
+                                            <th scope="col">Quantidade</th>
+                                            <th scope="col">Unidade</th>
                                         </tr>
                                     </thead>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
-                                        </tr>
-                                    </tfoot>
+
                                     <tbody>
                                         {% for produto in produtos %}
                                         <tr>
                                             <td>{{ produto.nome }}</td>
                                             <td>{{ produto.categoria.nome }}</td>
-                                            <td>{{ produto.preco }}</td>
+                                            <td> R$ {{ produto.preco }}</td>
                                             <td>{{ produto.quantidade }}</td>
                                             <td>{{ produto.unidade }}</td>
                                         </tr>
