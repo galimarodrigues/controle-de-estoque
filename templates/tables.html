@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -23,16 +23,16 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                            <a class="nav-link" href="/">
+                            <a tabindex="0" class="nav-link" href="/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Painel de Controle
                             </a>
                             <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a class="nav-link" href="/estoque/graficos/">
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Gráficos
                             </a>
-                            <a class="nav-link" href="/estoque/tabelas/">
+                            <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Estoque
                             </a>
@@ -50,28 +50,29 @@
                         </ol>
                         <div class="mb-4">
                             <h5>Gerenciar Categorias</h5>
-                            <button class="btn btn-primary" onclick="toggleForm('categoria-form')">Adicionar Categoria</button>
-                            <button class="btn btn-warning" onclick="toggleForm('remover-categoria-form')">Remover Categoria</button>
-                            <button class="btn btn-info" onclick="toggleForm('editar-categoria-form')">Editar Categoria</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria </button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-warning" onclick="toggleForm(this, 'remover-categoria-form')">Remover Categoria</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-categoria-form')">Editar Categoria</button>
                         </div>
                         <div class="mb-4">
                             <h5>Gerenciar Produtos</h5>
-                            <button class="btn btn-success" onclick="toggleForm('produto-form')">Adicionar Produto</button>
-                            <button class="btn btn-danger" onclick="toggleForm('remover-produto-form')">Saída Produto</button>
-                            <button class="btn btn-info" onclick="toggleForm('editar-produto-form')">Editar Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-success" onclick="toggleForm(this, 'produto-form')">Adicionar Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-danger" onclick="toggleForm(this, 'remover-produto-form')">Saída Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-produto-form')">Editar Produto</button>
                         </div>
+
                         <div id="categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
                                 <i class="fas fa-plus me-1"></i> Adicionar Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/add_categoria/">
+                                <form method="post" action="/estoque/add_categoria/" aria-label="Adicionar Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-nome" class="form-label">Nome da Categoria</label>
                                         <input type="text" class="form-control" id="categoria-nome" name="nome" required />
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-primary">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -80,15 +81,15 @@
                                 <i class="fas fa-plus me-1"></i> Adicionar Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/add_produto/">
+                                <form method="post" action="/estoque/add_produto/" aria-label="Adicionar Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-nome" class="form-label">Nome do Produto</label>
-                                        <input type="text" class="form-control" id="produto-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-nome" name="nome" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-categoria" class="form-label">Categoria</label>
-                                        <select class="form-control" id="produto-categoria" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="produto-categoria" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -96,17 +97,17 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-preco" class="form-label">Preço</label>
-                                        <input type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input type="number" class="form-control" id="produto-quantidade" name="quantidade" required />
+                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-unidade" class="form-label">Unidade</label>
-                                        <input type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
                                     </div>
-                                    <button type="submit" class="btn btn-success">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-success">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -115,11 +116,11 @@
                                 <i class="fas fa-minus me-1"></i> Saída Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/remover_produto/">
+                                <form method="post" action="/estoque/remover_produto/" aria-label="Remover Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-remover" class="form-label">Produto</label>
-                                        <select class="form-control" id="produto-remover" name="produto" required>
+                                        <select tabindex="0" class="form-control" id="produto-remover" name="produto" required>
                                             {% for produto in produtos %}
                                             <option value="{{ produto.id }}">{{ produto.nome }}</option>
                                             {% endfor %}
@@ -127,13 +128,13 @@
                                     </div>
                                     <div class="mb-3" id="quantidade-container">
                                         <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input type="number" class="form-control" id="produto-quantidade" name="quantidade" />
+                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" />
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="remover-tudo" name="remover_tudo" onclick="toggleQuantidade()">
+                                        <input tabindex="0" class="form-check-input" type="checkbox" id="remover-tudo" name="remover_tudo" onclick="toggleQuantidade()">
                                         <label class="form-check-label" for="remover-tudo">Excluir Produto</label>
                                     </div>
-                                    <button type="submit" class="btn btn-danger">Remover</button>
+                                    <button tabindex="0" type="submit" class="btn btn-danger">Remover</button>
                                 </form>
                             </div>
                         </div>
@@ -142,17 +143,17 @@
                                 <i class="fas fa-minus me-1"></i> Remover Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/remover_categoria/">
+                                <form method="post" action="/estoque/remover_categoria/" aria-label="Remover Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-remover" class="form-label">Categoria</label>
-                                        <select class="form-control" id="categoria-remover" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="categoria-remover" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-warning">Remover</button>
+                                    <button tabindex="0" type="submit" class="btn btn-warning">Remover</button>
                                 </form>
                             </div>
                         </div>
@@ -161,11 +162,11 @@
                                 <i class="fas fa-edit me-1"></i> Editar Categoria
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/editar_categoria/">
+                                <form method="post" action="/estoque/editar_categoria/" aria-label="Editar Categoria">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="categoria-editar" class="form-label">Categoria</label>
-                                        <select class="form-control" id="categoria-editar" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="categoria-editar" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -173,9 +174,9 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="categoria-nome" class="form-label">Novo Nome</label>
-                                        <input type="text" class="form-control" id="categoria-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="categoria-nome" name="nome" required />
                                     </div>
-                                    <button type="submit" class="btn btn-info">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -185,11 +186,11 @@
                                 <i class="fas fa-edit me-1"></i> Editar Produto
                             </div>
                             <div class="card-body">
-                                <form method="post" action="/estoque/editar_produto/">
+                                <form method="post" action="/estoque/editar_produto/" aria-label="Editar Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label for="produto-editar" class="form-label">Produto</label>
-                                        <select class="form-control" id="produto-editar" name="produto" required>
+                                        <select tabindex="0" class="form-control" id="produto-editar" name="produto" required>
                                             {% for produto in produtos %}
                                             <option value="{{ produto.id }}">{{ produto.nome }}</option>
                                             {% endfor %}
@@ -197,11 +198,11 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-nome" class="form-label">Novo Nome</label>
-                                        <input type="text" class="form-control" id="produto-nome" name="nome" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-nome" name="nome" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-categoria" class="form-label">Nova Categoria</label>
-                                        <select class="form-control" id="produto-categoria" name="categoria" required>
+                                        <select tabindex="0" class="form-control" id="produto-categoria" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
@@ -209,13 +210,13 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-preco" class="form-label">Novo Preço</label>
-                                        <input type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-unidade" class="form-label">Nova Unidade</label>
-                                        <input type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
                                     </div>
-                                    <button type="submit" class="btn btn-info">Salvar</button>
+                                    <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
                             </div>
                         </div>
@@ -230,31 +231,23 @@
                                 Produtos no Estoque
                             </div>
                             <div class="card-body">
-                                <table id="datatablesSimple">
+                                <table tabindex="0" id="datatablesSimple">
                                     <thead>
                                         <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
+                                            <th scope="col">Nome</th>
+                                            <th scope="col">Categoria</th>
+                                            <th scope="col">Preço</th>
+                                            <th scope="col">Quantidade</th>
+                                            <th scope="col">Unidade</th>
                                         </tr>
                                     </thead>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
-                                        </tr>
-                                    </tfoot>
+
                                     <tbody>
                                         {% for produto in produtos %}
                                         <tr>
                                             <td>{{ produto.nome }}</td>
                                             <td>{{ produto.categoria.nome }}</td>
-                                            <td>{{ produto.preco }}</td>
+                                            <td> R$ {{ produto.preco }}</td>
                                             <td>{{ produto.quantidade }}</td>
                                             <td>{{ produto.unidade }}</td>
                                         </tr>
@@ -298,7 +291,10 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
         <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
         <script>
-            function toggleForm(formId) {
+            function toggleForm(button, formId) {
+                const isPressed = button.getAttribute('aria-pressed') === 'true';
+                button.setAttribute('aria-pressed', !isPressed);
+
                 const form = document.getElementById(formId);
                 form.style.display = form.style.display === 'none' ? 'block' : 'none';
             }

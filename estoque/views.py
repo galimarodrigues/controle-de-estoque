@@ -29,11 +29,25 @@ def index(request):
         for categoria in categorias
     ]
 
+    dados_barras = list(zip(category_names, product_quantities))
+    dados_ordenados = sorted(dados_barras, key=lambda x: x[1], reverse=True)
+
+    descricao_barras = [f"{nome_categoria}: {quantidade} unidades" for nome_categoria, quantidade in dados_ordenados]
+
+
+    dados_pizza = list(zip(category_names, stock_values))
+    dados_ordenados_pizza = sorted(dados_pizza, key=lambda x: x[1], reverse=True)
+
+    descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
+    
+
     return render(request, 'base.html', {
         'produtos': produtos,
         'categorias': category_names,
         'product_quantities': product_quantities,
-        'stock_values': stock_values
+        'stock_values': stock_values,
+        'descricao_barras': descricao_barras,
+        'descricao_pizza': descricao_pizza,
     })
 
 def charts(request):
@@ -51,10 +65,24 @@ def charts(request):
         for categoria in categorias
     ]
 
+    dados_barras = list(zip(category_names, product_quantities))
+    dados_ordenados = sorted(dados_barras, key=lambda x: x[1], reverse=True)
+
+    descricao_barras = [f"{nome_categoria}: {quantidade} unidades" for nome_categoria, quantidade in dados_ordenados]
+
+
+    dados_pizza = list(zip(category_names, stock_values))
+    dados_ordenados_pizza = sorted(dados_pizza, key=lambda x: x[1], reverse=True)
+
+    descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
+    
+
     return render(request, 'charts.html', {
         'categorias': category_names,
         'product_quantities': product_quantities,
-        'stock_values': stock_values
+        'stock_values': stock_values,
+        'descricao_barras': descricao_barras,
+        'descricao_pizza': descricao_pizza,
     })
 
 def tables(request):

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -45,7 +45,7 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                                <a class="nav-link" href="/">
+                                <a class="nav-link" tabindex="0" href="/">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                     Painel de Controle
                                 </a>
@@ -87,11 +87,11 @@
 {#                                </nav>#}
 {#                            </div>#}
                             <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a class="nav-link" href="/estoque/graficos/">
+                            <a class="nav-link" tabindex="0" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Gráficos
                             </a>
-                            <a class="nav-link" href="/estoque/tabelas/">
+                            <a class="nav-link" tabindex="0" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Estoque
                             </a>
@@ -151,24 +151,36 @@
                         <div class="row">
                             <div class="col-xl-6">
                                 <div class="card mb-4">
-                                    <div class="card-header">
+                                    <div class="card-header" tabindex="0">
                                         <i class="fas fa-chart-bar me-1"></i>
                                         Quantidade de Produtos por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryBarChart" style="height: 300px;"></canvas>
+                                        <!-- COLOCAR DESCRICAO -->
+                                        <canvas tabindex="0" id="categoryBarChart" style="height: 300px;"></canvas>
                                     </div>
+                                </div>
+                                <div>
+                                    <p tabindex="0" class="descricao_grafico">
+                                    Gráfico de barras destacando a quantidade de produtos em estoque por categoria Tem-se, em ordem decrescente de quantidade de produto,  {{descricao_barras|join:", "}}
+                                    </p>
                                 </div>
                             </div>
                             <div class="col-xl-6">
                                 <div class="card mb-4">
-                                    <div class="card-header">
+                                    <div class="card-header" tabindex="0">
                                         <i class="fas fa-chart-pie me-1"></i>
                                         Valor Total do Estoque por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="categoryPieChart" style="height: 300px;"></canvas>
+                                        <!-- COLOCAR DESCRICAO -->
+                                        <canvas tabindex="0" id="categoryPieChart" style="height: 300px;"></canvas>
                                     </div>
+                                </div>
+                                    <div>
+                                        <p tabindex="0" class="descricao_grafico">
+                                            Gráfico de pizza destacando o valor total do estoque, em reais, por categoria de produto. Tem-se, em ordem decrescente de valor de estoque,  {{descricao_pizza|join:", "}}
+                                        </p>
                                 </div>
                             </div>
                         </div>
@@ -176,36 +188,28 @@
                             <li class="breadcrumb-item active">Visualização do Estoque</li>
                         </ol>
                         <div class="card mb-4">
-                            <div class="card-header">
+                            <div class="card-header" tabindex="0">
                                 <i class="fas fa-table me-1"></i>
                                 Produtos no Estoque
                             </div>
                             <div class="card-body">
-                                <table id="datatablesSimple">
+                                <table tabindex="0" id="datatablesSimple">
                                     <thead>
                                         <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
+                                            <th scope="col">Nome</th>
+                                            <th scope="col">Categoria</th>
+                                            <th scope="col">Preço</th>
+                                            <th scope="col">Quantidade</th>
+                                            <th scope="col">Unidade</th>
                                         </tr>
                                     </thead>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>Categoria</th>
-                                            <th>Preço</th>
-                                            <th>Quantidade</th>
-                                            <th>Unidade</th>
-                                        </tr>
-                                    </tfoot>
+
                                     <tbody>
                                         {% for produto in produtos %}
                                         <tr>
                                             <td>{{ produto.nome }}</td>
                                             <td>{{ produto.categoria.nome }}</td>
-                                            <td>{{ produto.preco }}</td>
+                                            <td> R$ {{ produto.preco }}</td>
                                             <td>{{ produto.quantidade }}</td>
                                             <td>{{ produto.unidade }}</td>
                                         </tr>
@@ -302,6 +306,12 @@
                 options: {
                     responsive: true
                 }
+            });
+
+            $(document).ready(function() {
+                $('#datatablesSimple').DataTable({
+                    keys: true
+                });
             });
         </script>
     </body>
