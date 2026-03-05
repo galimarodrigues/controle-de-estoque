@@ -2,6 +2,8 @@
 
 Aplicação Django para controle de estoque de uma cafeteria. Suporta execução local com PostgreSQL e deploy em produção via Railway.
 
+https://controle-de-estoque-univesp.up.railway.app/
+
 ## Tecnologias
 - Python 3.10+
 - Django
