@@ -1,7 +1,10 @@
 # Controle de Estoque - Cafeteria
 
-Aplicação Django para controle de estoque de uma cafeteria. Suporta execução local com PostgreSQL e deploy em produção via Railway.
+Aplicação web desenvolvida com Django para controle de estoque de uma cafeteria. O sistema permite gerenciar produtos, entradas e saídas de estoque, facilitando o acompanhamento e a organização dos insumos utilizados no estabelecimento.
 
+Este projeto foi desenvolvido em equipe como parte do Projeto Integrador da UNIVESP, envolvendo alunos dos cursos de Engenharia de Computação, Bacharelado em Tecnologia da Informação e Ciência de Dados. O objetivo do projeto foi aplicar, na prática, conceitos de desenvolvimento de software, modelagem de dados e análise de informações, simulando um sistema real de gestão de estoque para pequenos negócios.
+
+A aplicação suporta execução local utilizando PostgreSQL e também pode ser implantada em produção através da plataforma Railway.
 https://controle-de-estoque-univesp.up.railway.app/
 
 ## Tecnologias
