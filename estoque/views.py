@@ -11,11 +11,11 @@ from .services import criar_produto_com_estoque_inicial, registrar_movimentacao
 def _render_tables(request):
     produtos = Produto.objects.select_related('categoria').all().order_by('nome')
     categorias = Categoria.objects.all().order_by('nome')
-    movimentacoes_recentes = Movimentacao.objects.select_related('usuario')[:10]
+    movimentacoes = Movimentacao.objects.select_related('usuario').all()
     return render(request, 'tables.html', {
         'produtos': produtos,
         'categorias': categorias,
-        'movimentacoes_recentes': movimentacoes_recentes,
+        'movimentacoes': movimentacoes,
         'unidades_validas': UNIDADES_VALIDAS,
     })
 
@@ -35,6 +35,7 @@ def permission_denied(request, exception):
 def index(request):
     categorias = Categoria.objects.all()
     produtos = Produto.objects.all()
+    movimentacoes_recentes = Movimentacao.objects.select_related('usuario')[:10]
 
     category_names = [categoria.nome for categoria in categorias]
     product_quantities = [
@@ -56,6 +57,7 @@ def index(request):
 
     return render(request, 'base.html', {
         'produtos': produtos,
+        'movimentacoes_recentes': movimentacoes_recentes,
         'categorias': category_names,
         'product_quantities': product_quantities,
         'stock_values': stock_values,

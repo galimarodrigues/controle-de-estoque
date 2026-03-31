@@ -218,6 +218,48 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="card mb-4">
+                            <div class="card-header" tabindex="0">
+                                <i class="fas fa-clock-rotate-left me-1"></i>
+                                Movimentacoes Recentes
+                            </div>
+                            <div class="card-body">
+                                <table tabindex="0" id="datatablesMovimentacoesRecentes">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Data</th>
+                                            <th scope="col">Produto</th>
+                                            <th scope="col">Tipo</th>
+                                            <th scope="col">Quantidade</th>
+                                            <th scope="col">Unidade</th>
+                                            <th scope="col">Custo Unitario</th>
+                                            <th scope="col">Motivo</th>
+                                            <th scope="col">Fornecedor</th>
+                                            <th scope="col">Usuario</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for movimentacao in movimentacoes_recentes %}
+                                        <tr>
+                                            <td>{{ movimentacao.data|date:"d/m/Y H:i" }}</td>
+                                            <td>{{ movimentacao.produto_nome }}</td>
+                                            <td>{{ movimentacao.get_tipo_display }}</td>
+                                            <td>{{ movimentacao.quantidade }}</td>
+                                            <td>{{ movimentacao.unidade }}</td>
+                                            <td>R$ {{ movimentacao.custo_unitario|default:"0.00" }}</td>
+                                            <td>{{ movimentacao.motivo|default:"-" }}</td>
+                                            <td>{{ movimentacao.fornecedor|default:"-" }}</td>
+                                            <td>{% if movimentacao.usuario %}{{ movimentacao.usuario.username }}{% else %}-{% endif %}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="9">Nenhuma movimentacao registrada ainda.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 
                     <!-- Implementação do VLibras -->
@@ -308,11 +350,6 @@
                 }
             });
 
-            $(document).ready(function() {
-                $('#datatablesSimple').DataTable({
-                    keys: true
-                });
-            });
         </script>
     </body>
 </html>

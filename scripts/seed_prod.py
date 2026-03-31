@@ -12,6 +12,40 @@ from decimal import Decimal
 from http.cookiejar import CookieJar
 
 
+UNIDADE_MAP = {
+    "kg": "kg",
+    "litros": "l",
+    "unidades": "un",
+    "caixas": "cx",
+    "pacotes": "pct",
+    "fardos": "cx",
+    "macos": "un",
+}
+
+
+FORNECEDORES = [
+    "Fornecedor Central",
+    "Distribuidora Vale",
+    "Atacado Mantiqueira",
+    "Cooperativa Cafeeira",
+    "Casa de Embalagens",
+]
+
+
+MOTIVOS_ENTRADA = [
+    "Reposicao semanal",
+    "Compra programada",
+    "Recebimento de fornecedor",
+]
+
+
+MOTIVOS_SAIDA = [
+    "Consumo operacional",
+    "Producao diaria",
+    "Ajuste de estoque",
+]
+
+
 BASE_DATA = {
     "Graos e Cafes": [
         ("Cafe Especial Mogiana", "kg", "78.50", 42),
@@ -142,7 +176,19 @@ class ProdutoSeed:
     categoria: str
     unidade: str
     preco: str
+    quantidade_inicial: int
+    quantidade_final: int
+
+
+@dataclass(frozen=True)
+class MovimentacaoSeed:
+    produto: str
+    tipo: str
     quantidade: int
+    custo_unitario: str
+    motivo: str
+    fornecedor: str
+    observacao: str
 
 
 class SeedClient:
@@ -177,6 +223,10 @@ class SeedClient:
             time.sleep(self.pause_seconds)
 
 
+def normalize_label(value: str) -> str:
+    return " ".join(html.unescape(value).strip().split()).title()
+
+
 def parse_csrf_token(page: str) -> str:
     match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page)
     if not match:
@@ -193,7 +243,7 @@ def parse_category_options(page: str) -> dict[str, str]:
     if not match:
         raise RuntimeError("Nao foi possivel localizar a lista de categorias.")
     options = re.findall(r'<option value="(\d+)">(.*?)</option>', match.group(1), re.DOTALL)
-    return {html.unescape(name).strip(): category_id for category_id, name in options}
+    return {normalize_label(name): category_id for category_id, name in options}
 
 
 def parse_existing_products(page: str) -> set[str]:
@@ -206,10 +256,22 @@ def parse_existing_products(page: str) -> set[str]:
         cells = re.findall(r"<td>(.*?)</td>", row, re.DOTALL)
         if cells:
             cell_text = re.sub(r"<.*?>", "", cells[0])
-            normalized = html.unescape(cell_text).strip()
+            normalized = " ".join(html.unescape(cell_text).strip().split())
             if normalized:
                 products.add(normalized)
     return products
+
+
+def parse_product_options(page: str, select_id: str) -> dict[str, str]:
+    match = re.search(
+        rf'<select[^>]*id="{re.escape(select_id)}"[^>]*>(.*?)</select>',
+        page,
+        re.DOTALL,
+    )
+    if not match:
+        raise RuntimeError(f"Nao foi possivel localizar a lista de produtos do campo {select_id}.")
+    options = re.findall(r'<option value="(\d+)">(.*?)</option>', match.group(1), re.DOTALL)
+    return {" ".join(html.unescape(name).strip().split()): product_id for product_id, name in options}
 
 
 def build_seed_products(seed: int) -> list[ProdutoSeed]:
@@ -217,21 +279,90 @@ def build_seed_products(seed: int) -> list[ProdutoSeed]:
     products: list[ProdutoSeed] = []
     for category_name, entries in BASE_DATA.items():
         for nome, unidade, preco, quantidade in entries:
+            unidade_padronizada = UNIDADE_MAP[unidade]
             price = Decimal(preco)
             adjusted_price = (price * Decimal(str(randomizer.uniform(0.93, 1.12)))).quantize(
                 Decimal("0.01")
             )
             adjusted_quantity = max(quantidade + randomizer.randint(-5, 18), 4)
+            quantidade_inicial = adjusted_quantity + randomizer.randint(8, 26)
             products.append(
                 ProdutoSeed(
                     nome=nome,
                     categoria=category_name,
-                    unidade=unidade,
+                    unidade=unidade_padronizada,
                     preco=str(adjusted_price),
-                    quantidade=adjusted_quantity,
+                    quantidade_inicial=quantidade_inicial,
+                    quantidade_final=adjusted_quantity,
                 )
             )
     return products
+
+
+def build_seed_movements(products: list[ProdutoSeed], seed: int) -> dict[str, list[MovimentacaoSeed]]:
+    randomizer = random.Random(seed + 101)
+    movimentacoes_por_produto: dict[str, list[MovimentacaoSeed]] = {}
+
+    for item in products:
+        saldo = item.quantidade_inicial
+        movimentos: list[MovimentacaoSeed] = []
+        quantidade_saidas = randomizer.randint(1, 3)
+
+        for indice in range(quantidade_saidas):
+            restante = saldo - item.quantidade_final
+            movimentos_restantes = quantidade_saidas - indice
+            minimo_reserva = movimentos_restantes - 1
+            max_saida = max(1, restante - minimo_reserva) if restante > minimo_reserva else 1
+            saida = min(max_saida, max(1, restante // movimentos_restantes))
+            saida = max(1, saida + randomizer.randint(0, 2))
+            saida = min(saida, saldo - item.quantidade_final - minimo_reserva)
+            if saida <= 0:
+                continue
+
+            saldo -= saida
+            movimentos.append(
+                MovimentacaoSeed(
+                    produto=item.nome,
+                    tipo="saida",
+                    quantidade=saida,
+                    custo_unitario=item.preco,
+                    motivo=randomizer.choice(MOTIVOS_SAIDA),
+                    fornecedor=randomizer.choice(FORNECEDORES),
+                    observacao=f"Movimentacao automatica de seed #{indice + 1}",
+                )
+            )
+
+        entrada_extra = randomizer.randint(2, 8)
+        saldo += entrada_extra
+        movimentos.append(
+            MovimentacaoSeed(
+                produto=item.nome,
+                tipo="entrada",
+                quantidade=entrada_extra,
+                custo_unitario=item.preco,
+                motivo=randomizer.choice(MOTIVOS_ENTRADA),
+                fornecedor=randomizer.choice(FORNECEDORES),
+                observacao="Reposicao registrada pelo script de seed",
+            )
+        )
+
+        ajuste_final = saldo - item.quantidade_final
+        if ajuste_final > 0:
+            movimentos.append(
+                MovimentacaoSeed(
+                    produto=item.nome,
+                    tipo="saida",
+                    quantidade=ajuste_final,
+                    custo_unitario=item.preco,
+                    motivo="Ajuste para saldo final",
+                    fornecedor=randomizer.choice(FORNECEDORES),
+                    observacao="Ajuste final para manter o saldo planejado",
+                )
+            )
+
+        movimentacoes_por_produto[item.nome] = movimentos
+
+    return movimentacoes_por_produto
 
 
 def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
@@ -243,15 +374,20 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
 
     desired_categories = list(BASE_DATA.keys())
     desired_products = build_seed_products(seed)
+    desired_movements = build_seed_movements(desired_products, seed)
 
-    categories_to_create = [name for name in desired_categories if name not in existing_categories]
+    categories_to_create = [
+        name for name in desired_categories if normalize_label(name) not in existing_categories
+    ]
     products_to_create = [item for item in desired_products if item.nome not in existing_products]
+    movements_to_create = sum(len(desired_movements[item.nome]) for item in products_to_create)
 
     print(f"Base URL: {base_url}")
     print(f"Categorias existentes: {len(existing_categories)}")
     print(f"Produtos existentes: {len(existing_products)}")
     print(f"Categorias a criar: {len(categories_to_create)}")
     print(f"Produtos a criar: {len(products_to_create)}")
+    print(f"Movimentacoes a criar: {movements_to_create}")
 
     if dry_run:
         print("Dry-run ativo. Nenhuma alteracao foi enviada.")
@@ -275,7 +411,7 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
 
     created_products = 0
     for item in products_to_create:
-        category_id = existing_categories.get(item.categoria)
+        category_id = existing_categories.get(normalize_label(item.categoria))
         if not category_id:
             raise RuntimeError(f"Categoria ausente apos cadastro: {item.categoria}")
         client.post_form(
@@ -285,8 +421,11 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
                 "nome": item.nome,
                 "categoria": category_id,
                 "preco": item.preco,
-                "quantidade": str(item.quantidade),
+                "quantidade_inicial": str(item.quantidade_inicial),
                 "unidade": item.unidade,
+                "motivo": "Estoque inicial",
+                "fornecedor": "Seed automatica",
+                "observacao": "Cadastro inicial gerado pelo script de seed",
             },
         )
         created_products += 1
@@ -294,9 +433,36 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
     final_page = client.fetch_tables_page()
     final_categories = parse_category_options(final_page)
     final_products = parse_existing_products(final_page)
+    final_product_ids = parse_product_options(final_page, "produto-entrada")
+
+    created_movements = 0
+    for item in products_to_create:
+        product_id = final_product_ids.get(item.nome)
+        if not product_id:
+            raise RuntimeError(f"Produto ausente apos cadastro: {item.nome}")
+        for movimento in desired_movements[item.nome]:
+            path = "/estoque/entrada_produto/" if movimento.tipo == "entrada" else "/estoque/remover_produto/"
+            client.post_form(
+                path,
+                {
+                    "csrfmiddlewaretoken": csrf_token,
+                    "produto": product_id,
+                    "quantidade": str(movimento.quantidade),
+                    "custo_unitario": movimento.custo_unitario,
+                    "motivo": movimento.motivo,
+                    "fornecedor": movimento.fornecedor,
+                    "observacao": movimento.observacao,
+                },
+            )
+            created_movements += 1
+
+    final_page = client.fetch_tables_page()
+    final_categories = parse_category_options(final_page)
+    final_products = parse_existing_products(final_page)
 
     print(f"Categorias criadas: {created_categories}")
     print(f"Produtos criados: {created_products}")
+    print(f"Movimentacoes criadas: {created_movements}")
     print(f"Categorias finais: {len(final_categories)}")
     print(f"Produtos finais: {len(final_products)}")
 

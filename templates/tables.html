@@ -344,10 +344,10 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-clock-rotate-left me-1"></i>
-                                Movimentacoes Recentes
+                                Todas as Movimentacoes
                             </div>
                             <div class="card-body">
-                                <table class="table">
+                                <table tabindex="0" id="datatablesMovimentacoes">
                                     <thead>
                                         <tr>
                                             <th scope="col">Data</th>
@@ -362,7 +362,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for movimentacao in movimentacoes_recentes %}
+                                        {% for movimentacao in movimentacoes %}
                                         <tr>
                                             <td>{{ movimentacao.data|date:"d/m/Y H:i" }}</td>
                                             <td>{{ movimentacao.produto_nome }}</td>
