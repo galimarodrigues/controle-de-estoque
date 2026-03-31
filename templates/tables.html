@@ -30,7 +30,7 @@
                             <div class="sb-sidenav-menu-heading">Complementos</div>
                             <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Gráficos
+                                Graficos
                             </a>
                             <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
@@ -50,14 +50,15 @@
                         </ol>
                         <div class="mb-4">
                             <h5>Gerenciar Categorias</h5>
-                            <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria </button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-warning" onclick="toggleForm(this, 'remover-categoria-form')">Remover Categoria</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-categoria-form')">Editar Categoria</button>
                         </div>
                         <div class="mb-4">
                             <h5>Gerenciar Produtos</h5>
                             <button tabindex="0" aria-pressed="False" class="btn btn-success" onclick="toggleForm(this, 'produto-form')">Adicionar Produto</button>
-                            <button tabindex="0" aria-pressed="False" class="btn btn-danger" onclick="toggleForm(this, 'remover-produto-form')">Saída Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'entrada-produto-form')">Entrada Produto</button>
+                            <button tabindex="0" aria-pressed="False" class="btn btn-danger" onclick="toggleForm(this, 'remover-produto-form')">Saida Produto</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-produto-form')">Editar Produto</button>
                         </div>
 
@@ -76,6 +77,7 @@
                                 </form>
                             </div>
                         </div>
+
                         <div id="produto-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
                                 <i class="fas fa-plus me-1"></i> Adicionar Produto
@@ -96,24 +98,81 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-preco" class="form-label">Preço</label>
-                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <label for="produto-preco" class="form-label">Preco</label>
+                                        <input tabindex="0" type="number" step="0.01" min="0" class="form-control" id="produto-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" required />
+                                        <label for="produto-quantidade" class="form-label">Quantidade Inicial</label>
+                                        <input tabindex="0" type="number" min="0" class="form-control" id="produto-quantidade" name="quantidade_inicial" value="0" required />
                                     </div>
                                     <div class="mb-3">
                                         <label for="produto-unidade" class="form-label">Unidade</label>
-                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <select tabindex="0" class="form-control" id="produto-unidade" name="unidade" required>
+                                            {% for codigo, nome in unidades_validas %}
+                                            <option value="{{ codigo }}">{{ nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="produto-motivo" class="form-label">Motivo da Entrada Inicial</label>
+                                        <input tabindex="0" type="text" class="form-control" id="produto-motivo" name="motivo" value="Estoque inicial" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="produto-fornecedor" class="form-label">Fornecedor</label>
+                                        <input tabindex="0" type="text" class="form-control" id="produto-fornecedor" name="fornecedor" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="produto-observacao" class="form-label">Observacao</label>
+                                        <textarea tabindex="0" class="form-control" id="produto-observacao" name="observacao" rows="3"></textarea>
                                     </div>
                                     <button tabindex="0" type="submit" class="btn btn-success">Salvar</button>
                                 </form>
                             </div>
                         </div>
+
+                        <div id="entrada-produto-form" class="card mb-4" style="display: none;">
+                            <div class="card-header">
+                                <i class="fas fa-box-open me-1"></i> Entrada Produto
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="/estoque/entrada_produto/" aria-label="Entrada Produto">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="produto-entrada" class="form-label">Produto</label>
+                                        <select tabindex="0" class="form-control" id="produto-entrada" name="produto" required>
+                                            {% for produto in produtos %}
+                                            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="entrada-quantidade" class="form-label">Quantidade</label>
+                                        <input tabindex="0" type="number" min="1" class="form-control" id="entrada-quantidade" name="quantidade" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="entrada-custo" class="form-label">Custo Unitario no Momento</label>
+                                        <input tabindex="0" type="number" step="0.01" min="0" class="form-control" id="entrada-custo" name="custo_unitario" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="entrada-motivo" class="form-label">Motivo</label>
+                                        <input tabindex="0" type="text" class="form-control" id="entrada-motivo" name="motivo" value="Reposicao de estoque" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="entrada-fornecedor" class="form-label">Fornecedor</label>
+                                        <input tabindex="0" type="text" class="form-control" id="entrada-fornecedor" name="fornecedor" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="entrada-observacao" class="form-label">Observacao</label>
+                                        <textarea tabindex="0" class="form-control" id="entrada-observacao" name="observacao" rows="3"></textarea>
+                                    </div>
+                                    <button tabindex="0" type="submit" class="btn btn-primary">Registrar Entrada</button>
+                                </form>
+                            </div>
+                        </div>
+
                         <div id="remover-produto-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
-                                <i class="fas fa-minus me-1"></i> Saída Produto
+                                <i class="fas fa-minus me-1"></i> Saida Produto
                             </div>
                             <div class="card-body">
                                 <form method="post" action="/estoque/remover_produto/" aria-label="Remover Produto">
@@ -127,8 +186,24 @@
                                         </select>
                                     </div>
                                     <div class="mb-3" id="quantidade-container">
-                                        <label for="produto-quantidade" class="form-label">Quantidade</label>
-                                        <input tabindex="0" type="number" class="form-control" id="produto-quantidade" name="quantidade" />
+                                        <label for="produto-saida-quantidade" class="form-label">Quantidade</label>
+                                        <input tabindex="0" type="number" min="1" class="form-control" id="produto-saida-quantidade" name="quantidade" />
+                                    </div>
+                                    <div class="mb-3" id="saida-custo-container">
+                                        <label for="saida-custo" class="form-label">Custo Unitario no Momento</label>
+                                        <input tabindex="0" type="number" step="0.01" min="0" class="form-control" id="saida-custo" name="custo_unitario" />
+                                    </div>
+                                    <div class="mb-3" id="saida-motivo-container">
+                                        <label for="saida-motivo" class="form-label">Motivo</label>
+                                        <input tabindex="0" type="text" class="form-control" id="saida-motivo" name="motivo" value="Consumo ou saida de estoque" />
+                                    </div>
+                                    <div class="mb-3" id="saida-fornecedor-container">
+                                        <label for="saida-fornecedor" class="form-label">Fornecedor Relacionado</label>
+                                        <input tabindex="0" type="text" class="form-control" id="saida-fornecedor" name="fornecedor" />
+                                    </div>
+                                    <div class="mb-3" id="saida-observacao-container">
+                                        <label for="saida-observacao" class="form-label">Observacao</label>
+                                        <textarea tabindex="0" class="form-control" id="saida-observacao" name="observacao" rows="3"></textarea>
                                     </div>
                                     <div class="form-check">
                                         <input tabindex="0" class="form-check-input" type="checkbox" id="remover-tudo" name="remover_tudo" onclick="toggleQuantidade()">
@@ -138,6 +213,7 @@
                                 </form>
                             </div>
                         </div>
+
                         <div id="remover-categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
                                 <i class="fas fa-minus me-1"></i> Remover Categoria
@@ -157,6 +233,7 @@
                                 </form>
                             </div>
                         </div>
+
                         <div id="editar-categoria-form" class="card mb-4" style="display: none;">
                             <div class="card-header">
                                 <i class="fas fa-edit me-1"></i> Editar Categoria
@@ -173,8 +250,8 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="categoria-nome" class="form-label">Novo Nome</label>
-                                        <input tabindex="0" type="text" class="form-control" id="categoria-nome" name="nome" required />
+                                        <label for="categoria-novo-nome" class="form-label">Novo Nome</label>
+                                        <input tabindex="0" type="text" class="form-control" id="categoria-novo-nome" name="nome" required />
                                     </div>
                                     <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
@@ -197,34 +274,42 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-nome" class="form-label">Novo Nome</label>
-                                        <input tabindex="0" type="text" class="form-control" id="produto-nome" name="nome" required />
+                                        <label for="produto-editar-nome" class="form-label">Novo Nome</label>
+                                        <input tabindex="0" type="text" class="form-control" id="produto-editar-nome" name="nome" required />
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-categoria" class="form-label">Nova Categoria</label>
-                                        <select tabindex="0" class="form-control" id="produto-categoria" name="categoria" required>
+                                        <label for="produto-editar-categoria" class="form-label">Nova Categoria</label>
+                                        <select tabindex="0" class="form-control" id="produto-editar-categoria" name="categoria" required>
                                             {% for categoria in categorias %}
                                             <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-preco" class="form-label">Novo Preço</label>
-                                        <input tabindex="0" type="number" step="0.01" class="form-control" id="produto-preco" name="preco" required />
+                                        <label for="produto-editar-preco" class="form-label">Novo Preco</label>
+                                        <input tabindex="0" type="number" step="0.01" min="0" class="form-control" id="produto-editar-preco" name="preco" required />
                                     </div>
                                     <div class="mb-3">
-                                        <label for="produto-unidade" class="form-label">Nova Unidade</label>
-                                        <input tabindex="0" type="text" class="form-control" id="produto-unidade" name="unidade" required />
+                                        <label for="produto-editar-unidade" class="form-label">Nova Unidade</label>
+                                        <select tabindex="0" class="form-control" id="produto-editar-unidade" name="unidade" required>
+                                            {% for codigo, nome in unidades_validas %}
+                                            <option value="{{ codigo }}">{{ nome }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                     <button tabindex="0" type="submit" class="btn btn-info">Salvar</button>
                                 </form>
                             </div>
                         </div>
-                        {% if error_message %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ error_message }}
-                        </div>
+
+                        {% if messages %}
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
                         {% endif %}
+
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table me-1"></i>
@@ -236,18 +321,17 @@
                                         <tr>
                                             <th scope="col">Nome</th>
                                             <th scope="col">Categoria</th>
-                                            <th scope="col">Preço</th>
+                                            <th scope="col">Preco</th>
                                             <th scope="col">Quantidade</th>
                                             <th scope="col">Unidade</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         {% for produto in produtos %}
                                         <tr>
                                             <td>{{ produto.nome }}</td>
                                             <td>{{ produto.categoria.nome }}</td>
-                                            <td> R$ {{ produto.preco }}</td>
+                                            <td>R$ {{ produto.preco }}</td>
                                             <td>{{ produto.quantidade }}</td>
                                             <td>{{ produto.unidade }}</td>
                                         </tr>
@@ -256,21 +340,62 @@
                                 </table>
                             </div>
                         </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-clock-rotate-left me-1"></i>
+                                Movimentacoes Recentes
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Data</th>
+                                            <th scope="col">Produto</th>
+                                            <th scope="col">Tipo</th>
+                                            <th scope="col">Quantidade</th>
+                                            <th scope="col">Unidade</th>
+                                            <th scope="col">Custo Unitario</th>
+                                            <th scope="col">Motivo</th>
+                                            <th scope="col">Fornecedor</th>
+                                            <th scope="col">Usuario</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for movimentacao in movimentacoes_recentes %}
+                                        <tr>
+                                            <td>{{ movimentacao.data|date:"d/m/Y H:i" }}</td>
+                                            <td>{{ movimentacao.produto_nome }}</td>
+                                            <td>{{ movimentacao.get_tipo_display }}</td>
+                                            <td>{{ movimentacao.quantidade }}</td>
+                                            <td>{{ movimentacao.unidade }}</td>
+                                            <td>R$ {{ movimentacao.custo_unitario|default:"0.00" }}</td>
+                                            <td>{{ movimentacao.motivo|default:"-" }}</td>
+                                            <td>{{ movimentacao.fornecedor|default:"-" }}</td>
+                                            <td>{% if movimentacao.usuario %}{{ movimentacao.usuario.username }}{% else %}-{% endif %}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="9">Nenhuma movimentacao registrada ainda.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Implementação do VLibras -->
                     <div vw class="enabled">
                         <div vw-access-button class="active"></div>
                         <div vw-plugin-wrapper>
                                 <div class="vw-plugin-top-wrapper"></div>
                         </div>
                     </div>
-                    
+
                     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
                     <script>
                         new window.VLibras.Widget('https://vlibras.gov.br/app');
                     </script>
-                    
                 </main>
                 <footer class="py-4 bg-light mt-auto">
                     <div class="container-fluid px-4">
@@ -301,19 +426,30 @@
 
             function toggleQuantidade() {
                 const checkbox = document.getElementById('remover-tudo');
-                const quantidadeContainer = document.getElementById('quantidade-container');
-                quantidadeContainer.style.display = checkbox.checked ? 'none' : 'block';
+                const ids = [
+                    'quantidade-container',
+                    'saida-custo-container',
+                    'saida-motivo-container',
+                    'saida-fornecedor-container',
+                    'saida-observacao-container',
+                ];
+
+                ids.forEach((id) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.display = checkbox.checked ? 'none' : 'block';
+                    }
+                });
             }
 
-            {% if error_message %}
-                // Automatically hide the error message after 5 seconds
+            {% if messages %}
                 document.addEventListener('DOMContentLoaded', function () {
-                    const errorAlert = document.querySelector('.alert-danger');
-                    if (errorAlert) {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach((alert) => {
                         setTimeout(() => {
-                            errorAlert.style.display = 'none';
-                        }, 5000); // 5000ms = 5 seconds
-                    }
+                            alert.style.display = 'none';
+                        }, 5000);
+                    });
                 });
             {% endif %}
         </script>

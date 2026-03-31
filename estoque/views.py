@@ -1,24 +1,41 @@
-from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import transaction
 from django.db.models import Sum
-from .forms import CategoriaForm, ProdutoForm
-from .models import Produto, Categoria
+from django.shortcuts import get_object_or_404, redirect, render
 
-# Error handling views
+from .forms import CategoriaForm, EditCategoriaForm, EditProdutoForm, MovimentacaoForm, ProdutoForm
+from .models import Categoria, Movimentacao, Produto, UNIDADES_VALIDAS
+from .services import criar_produto_com_estoque_inicial, registrar_movimentacao
+
+
+def _render_tables(request):
+    produtos = Produto.objects.select_related('categoria').all().order_by('nome')
+    categorias = Categoria.objects.all().order_by('nome')
+    movimentacoes_recentes = Movimentacao.objects.select_related('usuario')[:10]
+    return render(request, 'tables.html', {
+        'produtos': produtos,
+        'categorias': categorias,
+        'movimentacoes_recentes': movimentacoes_recentes,
+        'unidades_validas': UNIDADES_VALIDAS,
+    })
+
+
 def page_not_found(request, exception):
     return render(request, '404.html', status=404)
+
 
 def server_error(request):
     return render(request, '500.html', status=500)
 
+
 def permission_denied(request, exception):
     return render(request, '401.html', status=401)
 
-# Main pages
+
 def index(request):
     categorias = Categoria.objects.all()
     produtos = Produto.objects.all()
 
-    # Prepare data for charts
     category_names = [categoria.nome for categoria in categorias]
     product_quantities = [
         produtos.filter(categoria=categoria).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
@@ -31,15 +48,11 @@ def index(request):
 
     dados_barras = list(zip(category_names, product_quantities))
     dados_ordenados = sorted(dados_barras, key=lambda x: x[1], reverse=True)
-
     descricao_barras = [f"{nome_categoria}: {quantidade} unidades" for nome_categoria, quantidade in dados_ordenados]
-
 
     dados_pizza = list(zip(category_names, stock_values))
     dados_ordenados_pizza = sorted(dados_pizza, key=lambda x: x[1], reverse=True)
-
     descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
-    
 
     return render(request, 'base.html', {
         'produtos': produtos,
@@ -50,11 +63,11 @@ def index(request):
         'descricao_pizza': descricao_pizza,
     })
 
+
 def charts(request):
     categorias = Categoria.objects.all()
     produtos = Produto.objects.all()
 
-    # Prepare data for charts
     category_names = [categoria.nome for categoria in categorias]
     product_quantities = [
         produtos.filter(categoria=categoria).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
@@ -67,15 +80,11 @@ def charts(request):
 
     dados_barras = list(zip(category_names, product_quantities))
     dados_ordenados = sorted(dados_barras, key=lambda x: x[1], reverse=True)
-
     descricao_barras = [f"{nome_categoria}: {quantidade} unidades" for nome_categoria, quantidade in dados_ordenados]
-
 
     dados_pizza = list(zip(category_names, stock_values))
     dados_ordenados_pizza = sorted(dados_pizza, key=lambda x: x[1], reverse=True)
-
     descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
-    
 
     return render(request, 'charts.html', {
         'categorias': category_names,
@@ -85,79 +94,146 @@ def charts(request):
         'descricao_pizza': descricao_pizza,
     })
 
-def tables(request):
-    produtos = Produto.objects.all()
-    categorias = Categoria.objects.all()
-    return render(request, 'tables.html', {'produtos': produtos, 'categorias': categorias})
 
-# Form handling
+def tables(request):
+    return _render_tables(request)
+
+
 def add_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('tables')
-    else:
-        form = CategoriaForm()
-    return render(request, 'add_categoria.html', {'form': form})
+            messages.success(request, 'Categoria cadastrada com sucesso.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+    return redirect('tables')
+
 
 def add_produto(request):
     if request.method == 'POST':
         form = ProdutoForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('tables')
-    else:
-        form = ProdutoForm()
-    return render(request, 'add_produto.html', {'form': form})
+            criar_produto_com_estoque_inicial(
+                nome=form.cleaned_data['nome'],
+                categoria=form.cleaned_data['categoria'],
+                preco=form.cleaned_data['preco'],
+                unidade=form.cleaned_data['unidade'],
+                quantidade_inicial=form.cleaned_data.get('quantidade_inicial') or 0,
+                usuario=request.user,
+                motivo=form.cleaned_data.get('motivo') or 'Estoque inicial',
+                fornecedor=form.cleaned_data.get('fornecedor') or '',
+                observacao=form.cleaned_data.get('observacao') or '',
+            )
+            messages.success(request, 'Produto cadastrado e estoque inicial registrado.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+    return redirect('tables')
+
+
+def entrada_produto(request):
+    if request.method == 'POST':
+        form = MovimentacaoForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    registrar_movimentacao(
+                        produto_id=form.cleaned_data['produto'].id,
+                        tipo='entrada',
+                        quantidade=form.cleaned_data['quantidade'],
+                        usuario=request.user,
+                        custo_unitario=form.cleaned_data.get('custo_unitario'),
+                        motivo=form.cleaned_data.get('motivo') or 'Reposicao de estoque',
+                        fornecedor=form.cleaned_data.get('fornecedor') or '',
+                        observacao=form.cleaned_data.get('observacao') or '',
+                    )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, 'Entrada de estoque registrada com sucesso.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+    return redirect('tables')
+
 
 def remover_produto(request):
     if request.method == 'POST':
-        produto_id = request.POST.get('produto')
         remover_tudo = request.POST.get('remover_tudo') == 'on'
-        produto = Produto.objects.get(id=produto_id)
-
         if remover_tudo:
-            produto.delete()
-        else:
-            quantidade = int(request.POST.get('quantidade', 0))
-            if produto.quantidade >= quantidade:
-                produto.quantidade -= quantidade
-                produto.save()
+            produto = get_object_or_404(Produto, id=request.POST.get('produto'))
+            if produto.quantidade > 0:
+                messages.error(
+                    request,
+                    'Nao e permitido excluir produto com estoque disponivel. Zere o estoque com movimentacoes de saida primeiro.'
+                )
             else:
-                error_message = f"A quantidade disponível de {produto.nome} é insuficiente. Reduza a quantidade."
-                produtos = Produto.objects.all()
-                categorias = Categoria.objects.all()
-                return render(request, 'tables.html', {
-                    'produtos': produtos,
-                    'categorias': categorias,
-                    'error_message': error_message
-                })
+                produto.delete()
+                messages.success(request, 'Produto excluido sem remover o historico de movimentacoes.')
+            return redirect('tables')
 
-        return redirect('tables')
+        form = MovimentacaoForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    registrar_movimentacao(
+                        produto_id=form.cleaned_data['produto'].id,
+                        tipo='saida',
+                        quantidade=form.cleaned_data['quantidade'],
+                        usuario=request.user,
+                        custo_unitario=form.cleaned_data.get('custo_unitario'),
+                        motivo=form.cleaned_data.get('motivo') or 'Consumo/saida de estoque',
+                        fornecedor=form.cleaned_data.get('fornecedor') or '',
+                        observacao=form.cleaned_data.get('observacao') or '',
+                    )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, 'Saida de estoque registrada com sucesso.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+
+    return redirect('tables')
+
 
 def remover_categoria(request):
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria')
         Categoria.objects.filter(id=categoria_id).delete()
-        return redirect('tables')
+        messages.success(request, 'Categoria removida com sucesso.')
+    return redirect('tables')
+
 
 def editar_categoria(request):
     if request.method == 'POST':
-        categoria_id = request.POST.get('categoria')
-        novo_nome = request.POST.get('nome')
-        categoria = Categoria.objects.get(id=categoria_id)
-        categoria.nome = novo_nome
-        categoria.save()
-        return redirect('tables')
+        categoria = get_object_or_404(Categoria, id=request.POST.get('categoria'))
+        form = EditCategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria atualizada com sucesso.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+    return redirect('tables')
+
 
 def editar_produto(request):
     if request.method == 'POST':
-        produto_id = request.POST.get('produto')
-        produto = Produto.objects.get(id=produto_id)
-        produto.nome = request.POST.get('nome')
-        produto.categoria_id = request.POST.get('categoria')
-        produto.preco = request.POST.get('preco')
-        produto.unidade = request.POST.get('unidade')
-        produto.save()
-        return redirect('tables')
+        produto = get_object_or_404(Produto, id=request.POST.get('produto'))
+        form = EditProdutoForm(request.POST, instance=produto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Produto atualizado sem alterar o historico de movimentacoes.')
+        else:
+            messages.error(request, '; '.join(
+                erro for erros in form.errors.values() for erro in erros
+            ))
+    return redirect('tables')
