@@ -14,7 +14,13 @@
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <a class="navbar-brand ps-3 app-brand" href="/">
+                <span class="app-brand-mark">CE</span>
+                <span>
+                    <strong>Controle de Estoque</strong>
+                    <small>Cafeteria UNIVESP</small>
+                </span>
+            </a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
         </nav>
         <div id="layoutSidenav">
@@ -42,19 +48,19 @@
             </div>
             <div id="layoutSidenav_content">
                 <main>
-                    <div class="container-fluid px-4">
+                    <div class="container-fluid px-4 page-shell">
                         <h1 class="mt-4">Estoque</h1>
                         <ol class="breadcrumb mb-4">
                             <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
                             <li class="breadcrumb-item active">Estoque</li>
                         </ol>
-                        <div class="mb-4">
+                        <div class="mb-4 action-strip">
                             <h5>Gerenciar Categorias</h5>
                             <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-warning" onclick="toggleForm(this, 'remover-categoria-form')">Remover Categoria</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-categoria-form')">Editar Categoria</button>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-4 action-strip">
                             <h5>Gerenciar Produtos</h5>
                             <button tabindex="0" aria-pressed="False" class="btn btn-success" onclick="toggleForm(this, 'produto-form')">Adicionar Produto</button>
                             <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'entrada-produto-form')">Entrada Produto</button>
@@ -62,8 +68,8 @@
                             <button tabindex="0" aria-pressed="False" class="btn btn-info" onclick="toggleForm(this, 'editar-produto-form')">Editar Produto</button>
                         </div>
 
-                        <div id="categoria-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="categoria-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-plus me-1"></i> Adicionar Categoria
                             </div>
                             <div class="card-body">
@@ -78,8 +84,8 @@
                             </div>
                         </div>
 
-                        <div id="produto-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="produto-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-plus me-1"></i> Adicionar Produto
                             </div>
                             <div class="card-body">
@@ -130,8 +136,8 @@
                             </div>
                         </div>
 
-                        <div id="entrada-produto-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="entrada-produto-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-box-open me-1"></i> Entrada Produto
                             </div>
                             <div class="card-body">
@@ -170,8 +176,8 @@
                             </div>
                         </div>
 
-                        <div id="remover-produto-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="remover-produto-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-minus me-1"></i> Saida Produto
                             </div>
                             <div class="card-body">
@@ -214,8 +220,8 @@
                             </div>
                         </div>
 
-                        <div id="remover-categoria-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="remover-categoria-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-minus me-1"></i> Remover Categoria
                             </div>
                             <div class="card-body">
@@ -234,8 +240,8 @@
                             </div>
                         </div>
 
-                        <div id="editar-categoria-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="editar-categoria-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-edit me-1"></i> Editar Categoria
                             </div>
                             <div class="card-body">
@@ -258,8 +264,8 @@
                             </div>
                         </div>
 
-                        <div id="editar-produto-form" class="card mb-4" style="display: none;">
-                            <div class="card-header">
+                        <div id="editar-produto-form" class="card mb-4 form-card" style="display: none;">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-edit me-1"></i> Editar Produto
                             </div>
                             <div class="card-body">
@@ -311,7 +317,7 @@
                         {% endif %}
 
                         <div class="card mb-4">
-                            <div class="card-header">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-table me-1"></i>
                                 Produtos no Estoque
                             </div>
@@ -342,7 +348,7 @@
                         </div>
 
                         <div class="card mb-4">
-                            <div class="card-header">
+                            <div class="card-header card-header-modern">
                                 <i class="fas fa-clock-rotate-left me-1"></i>
                                 Todas as Movimentacoes
                             </div>

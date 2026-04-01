@@ -8,6 +8,22 @@ from .models import Categoria, Movimentacao, Produto, UNIDADES_VALIDAS
 from .services import criar_produto_com_estoque_inicial, registrar_movimentacao
 
 
+def _build_inventory_summary(produtos, movimentacoes=None):
+    total_produtos = produtos.count()
+    total_itens = sum(produto.quantidade for produto in produtos)
+    valor_total = float(sum(produto.quantidade * produto.preco for produto in produtos))
+    categorias_ativas = len({produto.categoria_id for produto in produtos})
+    resumo = {
+        'total_produtos': total_produtos,
+        'total_itens': total_itens,
+        'valor_total': valor_total,
+        'categorias_ativas': categorias_ativas,
+    }
+    if movimentacoes is not None:
+        resumo['total_movimentacoes'] = movimentacoes.count()
+    return resumo
+
+
 def _render_tables(request):
     produtos = Produto.objects.select_related('categoria').all().order_by('nome')
     categorias = Categoria.objects.all().order_by('nome')
@@ -16,6 +32,7 @@ def _render_tables(request):
         'produtos': produtos,
         'categorias': categorias,
         'movimentacoes': movimentacoes,
+        'resumo_estoque': _build_inventory_summary(produtos, movimentacoes),
         'unidades_validas': UNIDADES_VALIDAS,
     })
 
@@ -36,6 +53,7 @@ def index(request):
     categorias = Categoria.objects.all()
     produtos = Produto.objects.all()
     movimentacoes_recentes = Movimentacao.objects.select_related('usuario')[:10]
+    resumo_estoque = _build_inventory_summary(produtos, Movimentacao.objects.all())
 
     category_names = [categoria.nome for categoria in categorias]
     product_quantities = [
@@ -58,6 +76,7 @@ def index(request):
     return render(request, 'base.html', {
         'produtos': produtos,
         'movimentacoes_recentes': movimentacoes_recentes,
+        'resumo_estoque': resumo_estoque,
         'categorias': category_names,
         'product_quantities': product_quantities,
         'stock_values': stock_values,
@@ -69,6 +88,7 @@ def index(request):
 def charts(request):
     categorias = Categoria.objects.all()
     produtos = Produto.objects.all()
+    resumo_estoque = _build_inventory_summary(produtos, Movimentacao.objects.all())
 
     category_names = [categoria.nome for categoria in categorias]
     product_quantities = [
@@ -89,6 +109,7 @@ def charts(request):
     descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
 
     return render(request, 'charts.html', {
+        'resumo_estoque': resumo_estoque,
         'categorias': category_names,
         'product_quantities': product_quantities,
         'stock_values': stock_values,

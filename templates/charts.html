@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Gráficos</title>
+        <title>Graficos</title>
         {% load static %}
         <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
@@ -15,7 +15,13 @@
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <a class="navbar-brand ps-3 app-brand" href="/">
+                <span class="app-brand-mark">CE</span>
+                <span>
+                    <strong>Controle de Estoque</strong>
+                    <small>Cafeteria UNIVESP</small>
+                </span>
+            </a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
         </nav>
         <div id="layoutSidenav">
@@ -31,7 +37,7 @@
                             <div class="sb-sidenav-menu-heading">Complementos</div>
                             <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Gráficos
+                                Graficos
                             </a>
                             <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
@@ -43,34 +49,57 @@
             </div>
             <div id="layoutSidenav_content">
                 <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Gráficos</h1>
-                        <ol class="breadcrumb mb-4">
+                    <div class="container-fluid px-4 page-shell">
+                        <section class="hero-panel mt-4">
+                            <div class="hero-copy">
+                                <span class="eyebrow">Visual analitico</span>
+                                <h1>Graficos</h1>
+                                <p>Leitura visual do estoque por categoria com destaque para volume operacional e valor financeiro atual.</p>
+                            </div>
+                            <div class="hero-metrics">
+                                <article class="metric-card accent-amber">
+                                    <span class="metric-label">Produtos</span>
+                                    <strong>{{ resumo_estoque.total_produtos }}</strong>
+                                    <small>cadastros ativos</small>
+                                </article>
+                                <article class="metric-card accent-teal">
+                                    <span class="metric-label">Itens</span>
+                                    <strong>{{ resumo_estoque.total_itens }}</strong>
+                                    <small>unidades em estoque</small>
+                                </article>
+                                <article class="metric-card accent-red">
+                                    <span class="metric-label">Valor</span>
+                                    <strong>R$ {{ resumo_estoque.valor_total|floatformat:2 }}</strong>
+                                    <small>base financeira atual</small>
+                                </article>
+                            </div>
+                        </section>
+
+                        <ol class="breadcrumb breadcrumb-modern mb-4">
                             <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
-                            <li class="breadcrumb-item active">Gráficos</li>
+                            <li class="breadcrumb-item active">Graficos</li>
                         </ol>
-                        <div class="row">
+
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
+                                <div class="card mb-4 chart-card">
+                                    <div class="card-header card-header-modern" tabindex="0">
                                         <i class="fas fa-chart-bar me-1"></i>
                                         Quantidade de Produtos por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <!-- ADICIONAR DESCRICAO -->
                                         <canvas id="categoryBarChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
-                                <div>
-                                    <p tabindex="0" class="descricao_grafico">
-                                    Gráfico de barras destacando a quantidade de produtos em estoque por categoria. Tem-se, em ordem decrescente de quantidade de produto,  {{descricao_barras|join:", "}}
+                                <div class="insight-note">
+                                    <p tabindex="0" class="descricao_grafico mb-0">
+                                        Grafico de barras destacando a quantidade de produtos em estoque por categoria. Em ordem decrescente: {{ descricao_barras|join:", " }}
                                     </p>
                                 </div>
-
                             </div>
                             <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
+                                <div class="card mb-4 chart-card">
+                                    <div class="card-header card-header-modern" tabindex="0">
                                         <i class="fas fa-chart-pie me-1"></i>
                                         Valor Total do Estoque por Categoria
                                     </div>
@@ -78,24 +107,22 @@
                                         <canvas id="categoryPieChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
-                                    <div>
-                                        <p tabindex="0" class="descricao_grafico">
-                                            Gráfico de pizza destacando o valor total do estoque, em reais, por categoria de produto. Tem-se, em ordem decrescente de valor de estoque,  {{descricao_pizza|join:", "}}
-                                        </p>
-                                    </div>    
+                                <div class="insight-note">
+                                    <p tabindex="0" class="descricao_grafico mb-0">
+                                        Grafico de pizza destacando o valor total do estoque, em reais, por categoria. Em ordem decrescente: {{ descricao_pizza|join:", " }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-
-                    <!-- Implementação do VLibras -->
                     <div vw class="enabled">
                         <div vw-access-button class="active"></div>
                         <div vw-plugin-wrapper>
-                                <div class="vw-plugin-top-wrapper"></div>
+                            <div class="vw-plugin-top-wrapper"></div>
                         </div>
                     </div>
-                    
+
                     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
                     <script>
                         new window.VLibras.Widget('https://vlibras.gov.br/app');
@@ -124,8 +151,8 @@
                 return chroma.scale(palette).mode('lch').colors(count);
             }
 
-            const barColors = generateDistinctColors(categories.length, 'Paired'); // Use 'Paired' for the bar chart
-            const pieColors = generateDistinctColors(categories.length, 'Set3');   // Use 'Set3' for the pie chart
+            const barColors = generateDistinctColors(categories.length, ['#d89b3c', '#b65441', '#2e7d6f', '#314967']);
+            const pieColors = generateDistinctColors(categories.length, ['#f0c987', '#cf7b5c', '#5f9f93', '#6b88a6']);
 
             const categoryBarChartCtx = document.getElementById('categoryBarChart').getContext('2d');
             new Chart(categoryBarChartCtx, {

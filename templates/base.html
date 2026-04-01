@@ -7,37 +7,23 @@
         <meta name="description" content="" />
         <meta name="author" content="" />
         <title>Controle de Estoque</title>
+        {% load static %}
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-        <link href="../static/css/styles.css" rel="stylesheet" />
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>            <!-- Sidebar Toggle-->
+            <a class="navbar-brand ps-3 app-brand" href="/">
+                <span class="app-brand-mark">CE</span>
+                <span>
+                    <strong>Controle de Estoque</strong>
+                    <small>Cafeteria UNIVESP</small>
+                </span>
+            </a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
-            <!-- Navbar Search-->
-{#            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">#}
-{#                <div class="input-group">#}
-{#                    <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />#}
-{#                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>#}
-{#                </div>#}
-{#            </form>#}
-            <!-- Navbar-->
-{#            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">#}
-{#                <li class="nav-item dropdown">#}
-{#                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>#}
-{#                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">#}
-{#                        <li><a class="dropdown-item" href="#!">Settings</a></li>#}
-{#                        <li><a class="dropdown-item" href="#!">Activity Log</a></li>#}
-{#                        <li><hr class="dropdown-divider" /></li>#}
-{#                        <li><a class="dropdown-item" href="#!">Logout</a></li>#}
-{#                    </ul>#}
-{#                </li>#}
-{#            </ul>#}
-
         </nav>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
@@ -45,51 +31,14 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Principal</div>
-                                <a class="nav-link" tabindex="0" href="/">
-                                    <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                                    Painel de Controle
-                                </a>
-{#                            <div class="sb-sidenav-menu-heading">Interface</div>#}
-{#                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">#}
-{#                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>#}
-{#                                Layouts#}
-{#                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>#}
-{#                            </a>#}
-{#                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">#}
-{#                                <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>#}
-{#                                Pages#}
-{#                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>#}
-{#                            </a>#}
-{#                            <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">#}
-{#                                <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">#}
-{#                                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">#}
-{#                                        Authentication#}
-{#                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>#}
-{#                                    </a>#}
-{#                                    <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordionPages">#}
-{#                                        <nav class="sb-sidenav-menu-nested nav">#}
-{#                                            <a class="nav-link" href="login.html">Login</a>#}
-{#                                            <a class="nav-link" href="register.html">Register</a>#}
-{#                                            <a class="nav-link" href="password.html">Forgot Password</a>#}
-{#                                        </nav>#}
-{#                                    </div>#}
-{#                                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#pagesCollapseError" aria-expanded="false" aria-controls="pagesCollapseError">#}
-{#                                        Error#}
-{#                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>#}
-{#                                    </a>#}
-{#                                    <div class="collapse" id="pagesCollapseError" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordionPages">#}
-{#                                        <nav class="sb-sidenav-menu-nested nav">#}
-{#                                            <a class="nav-link" href="401.html">401 Page</a>#}
-{#                                            <a class="nav-link" href="404.html">404 Page</a>#}
-{#                                            <a class="nav-link" href="500.html">500 Page</a>#}
-{#                                        </nav>#}
-{#                                    </div>#}
-{#                                </nav>#}
-{#                            </div>#}
+                            <a class="nav-link" tabindex="0" href="/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Painel de Controle
+                            </a>
                             <div class="sb-sidenav-menu-heading">Complementos</div>
                             <a class="nav-link" tabindex="0" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Gráficos
+                                Graficos
                             </a>
                             <a class="nav-link" tabindex="0" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
@@ -97,98 +46,86 @@
                             </a>
                         </div>
                     </div>
-{#                    <div class="sb-sidenav-footer">#}
-{#                        <div class="small">Logged in as:</div>#}
-{#                        Controle de Estoque#}
-{#                    </div>#}
                 </nav>
             </div>
             <div id="layoutSidenav_content">
                 <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Painel de Controle</h1>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Visualização dos Gráficos</li>
+                    <div class="container-fluid px-4 page-shell">
+                        <section class="hero-panel hero-panel-dashboard mt-4">
+                            <div class="hero-copy">
+                                <span class="eyebrow">Painel operacional</span>
+                                <h1>Painel de Controle</h1>
+                                <p>Visao consolidada do estoque com distribuicao por categoria, impacto financeiro e ultimas movimentacoes registradas.</p>
+                            </div>
+                            <div class="hero-metrics">
+                                <article class="metric-card accent-amber">
+                                    <span class="metric-label">Produtos ativos</span>
+                                    <strong>{{ resumo_estoque.total_produtos }}</strong>
+                                    <small>cadastros disponiveis</small>
+                                </article>
+                                <article class="metric-card accent-teal">
+                                    <span class="metric-label">Itens em estoque</span>
+                                    <strong>{{ resumo_estoque.total_itens }}</strong>
+                                    <small>unidades somadas</small>
+                                </article>
+                                <article class="metric-card accent-red">
+                                    <span class="metric-label">Valor estimado</span>
+                                    <strong>R$ {{ resumo_estoque.valor_total|floatformat:2 }}</strong>
+                                    <small>capital imobilizado</small>
+                                </article>
+                                <article class="metric-card accent-navy">
+                                    <span class="metric-label">Movimentacoes</span>
+                                    <strong>{{ resumo_estoque.total_movimentacoes }}</strong>
+                                    <small>historico consolidado</small>
+                                </article>
+                            </div>
+                        </section>
+
+                        <ol class="breadcrumb breadcrumb-modern mb-4">
+                            <li class="breadcrumb-item active">Visao geral do estoque</li>
                         </ol>
-{#                        <div class="row">#}
-{#                            <div class="col-xl-3 col-md-6">#}
-{#                                <div class="card bg-primary text-white mb-4">#}
-{#                                    <div class="card-body">Primary Card</div>#}
-{#                                    <div class="card-footer d-flex align-items-center justify-content-between">#}
-{#                                        <a class="small text-white stretched-link" href="#">View Details</a>#}
-{#                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                            <div class="col-xl-3 col-md-6">#}
-{#                                <div class="card bg-warning text-white mb-4">#}
-{#                                    <div class="card-body">Warning Card</div>#}
-{#                                    <div class="card-footer d-flex align-items-center justify-content-between">#}
-{#                                        <a class="small text-white stretched-link" href="#">View Details</a>#}
-{#                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                            <div class="col-xl-3 col-md-6">#}
-{#                                <div class="card bg-success text-white mb-4">#}
-{#                                    <div class="card-body">Success Card</div>#}
-{#                                    <div class="card-footer d-flex align-items-center justify-content-between">#}
-{#                                        <a class="small text-white stretched-link" href="#">View Details</a>#}
-{#                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                            <div class="col-xl-3 col-md-6">#}
-{#                                <div class="card bg-danger text-white mb-4">#}
-{#                                    <div class="card-body">Danger Card</div>#}
-{#                                    <div class="card-footer d-flex align-items-center justify-content-between">#}
-{#                                        <a class="small text-white stretched-link" href="#">View Details</a>#}
-{#                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </div>#}
-                        <div class="row">
+
+                        <div class="row g-4">
                             <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
+                                <div class="card mb-4 chart-card">
+                                    <div class="card-header card-header-modern" tabindex="0">
                                         <i class="fas fa-chart-bar me-1"></i>
                                         Quantidade de Produtos por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <!-- COLOCAR DESCRICAO -->
                                         <canvas tabindex="0" id="categoryBarChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
-                                <div>
-                                    <p tabindex="0" class="descricao_grafico">
-                                    Gráfico de barras destacando a quantidade de produtos em estoque por categoria Tem-se, em ordem decrescente de quantidade de produto,  {{descricao_barras|join:", "}}
+                                <div class="insight-note">
+                                    <p tabindex="0" class="descricao_grafico mb-0">
+                                        Grafico de barras destacando a quantidade de produtos em estoque por categoria. Em ordem decrescente: {{ descricao_barras|join:", " }}
                                     </p>
                                 </div>
                             </div>
                             <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
+                                <div class="card mb-4 chart-card">
+                                    <div class="card-header card-header-modern" tabindex="0">
                                         <i class="fas fa-chart-pie me-1"></i>
                                         Valor Total do Estoque por Categoria
                                     </div>
                                     <div class="card-body">
-                                        <!-- COLOCAR DESCRICAO -->
                                         <canvas tabindex="0" id="categoryPieChart" style="height: 300px;"></canvas>
                                     </div>
                                 </div>
-                                    <div>
-                                        <p tabindex="0" class="descricao_grafico">
-                                            Gráfico de pizza destacando o valor total do estoque, em reais, por categoria de produto. Tem-se, em ordem decrescente de valor de estoque,  {{descricao_pizza|join:", "}}
-                                        </p>
+                                <div class="insight-note">
+                                    <p tabindex="0" class="descricao_grafico mb-0">
+                                        Grafico de pizza destacando o valor total do estoque, em reais, por categoria. Em ordem decrescente: {{ descricao_pizza|join:", " }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Visualização do Estoque</li>
+
+                        <ol class="breadcrumb breadcrumb-modern my-4">
+                            <li class="breadcrumb-item active">Consultas principais</li>
                         </ol>
-                        <div class="card mb-4">
-                            <div class="card-header" tabindex="0">
+
+                        <div class="card mb-4 table-card">
+                            <div class="card-header card-header-modern" tabindex="0">
                                 <i class="fas fa-table me-1"></i>
                                 Produtos no Estoque
                             </div>
@@ -198,18 +135,17 @@
                                         <tr>
                                             <th scope="col">Nome</th>
                                             <th scope="col">Categoria</th>
-                                            <th scope="col">Preço</th>
+                                            <th scope="col">Preco</th>
                                             <th scope="col">Quantidade</th>
                                             <th scope="col">Unidade</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         {% for produto in produtos %}
                                         <tr>
                                             <td>{{ produto.nome }}</td>
                                             <td>{{ produto.categoria.nome }}</td>
-                                            <td> R$ {{ produto.preco }}</td>
+                                            <td>R$ {{ produto.preco }}</td>
                                             <td>{{ produto.quantidade }}</td>
                                             <td>{{ produto.unidade }}</td>
                                         </tr>
@@ -218,8 +154,9 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="card mb-4">
-                            <div class="card-header" tabindex="0">
+
+                        <div class="card mb-4 table-card">
+                            <div class="card-header card-header-modern" tabindex="0">
                                 <i class="fas fa-clock-rotate-left me-1"></i>
                                 Movimentacoes Recentes
                             </div>
@@ -261,15 +198,14 @@
                             </div>
                         </div>
                     </div>
-                
-                    <!-- Implementação do VLibras -->
+
                     <div vw class="enabled">
                         <div vw-access-button class="active"></div>
                         <div vw-plugin-wrapper>
-                                <div class="vw-plugin-top-wrapper"></div>
+                            <div class="vw-plugin-top-wrapper"></div>
                         </div>
                     </div>
-                    
+
                     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
                     <script>
                         new window.VLibras.Widget('https://vlibras.gov.br/app');
@@ -290,12 +226,12 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-        <script src="../static/js/scripts.js"></script>
+        <script src="{% static 'js/scripts.js' %}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-        <script src="../static/assets/demo/chart-area-demo.js"></script>
-        <script src="../static/assets/demo/chart-bar-demo.js"></script>
+        <script src="{% static 'assets/demo/chart-area-demo.js' %}"></script>
+        <script src="{% static 'assets/demo/chart-bar-demo.js' %}"></script>
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-        <script src="../static/js/datatables-simple-demo.js"></script>
+        <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
         <script>
             const categories = {{ categorias|safe }};
             const productQuantities = {{ product_quantities|safe }};
@@ -305,8 +241,8 @@
                 return chroma.scale(palette).mode('lch').colors(count);
             }
 
-            const barColors = generateDistinctColors(categories.length, 'Paired');
-            const pieColors = generateDistinctColors(categories.length, 'Set3');
+            const barColors = generateDistinctColors(categories.length, ['#d89b3c', '#b65441', '#2e7d6f', '#314967']);
+            const pieColors = generateDistinctColors(categories.length, ['#f0c987', '#cf7b5c', '#5f9f93', '#6b88a6']);
 
             const categoryBarChartCtx = document.getElementById('categoryBarChart').getContext('2d');
             new Chart(categoryBarChartCtx, {
@@ -327,8 +263,8 @@
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true
-        }
-    }]
+                            }
+                        }]
                     }
                 }
             });
@@ -349,7 +285,6 @@
                     responsive: true
                 }
             });
-
         </script>
     </body>
 </html>
