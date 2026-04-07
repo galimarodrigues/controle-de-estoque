@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Consulta por período do estoque" />
+        <meta name="author" content="" />
+        <title>Consulta por Período</title>
+        {% load static %}
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Principal</div>
+                            <a class="nav-link" tabindex="0" href="/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Painel de Controle
+                            </a>
+                            <div class="sb-sidenav-menu-heading">Complementos</div>
+                            <a class="nav-link" tabindex="0" href="/estoque/graficos/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Gráficos
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/estoque/tabelas/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Estoque
+                            </a>
+                            <a class="nav-link active" tabindex="0" href="/consulta/periodo/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por período
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Consulta por Período</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
+                            <li class="breadcrumb-item active">Consulta por Período</li>
+                        </ol>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-filter me-1"></i>
+                                        Filtro de consulta
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="get">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="id_data_inicio" class="form-label">Data de início</label>
+                                                    {{ form.data_inicio }}
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="id_data_fim" class="form-label">Data de fim</label>
+                                                    {{ form.data_fim }}
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Atualizar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-arrow-up-right-from-square me-1"></i>
+                                        Total de Saídas
+                                    </div>
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="text-center w-100">
+                                            <h2 class="text-success mb-0">+R$ {{ total_arrecadado|floatformat:2 }}</h2>
+                                            <small class="text-muted">Valor total das saídas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-arrow-down-left-from-square me-1"></i>
+                                        Total de Entradas
+                                    </div>
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="text-center w-100">
+                                            <h2 class="text-danger mb-0">-R$ {{ total_custos|floatformat:2 }}</h2>
+                                            <small class="text-muted">Valor total das entradas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-chart-bar me-1"></i>
+                                        Top 5 Produtos Mais Vendidos
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="topProdutosChart" style="height: 300px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-chart-bar me-1"></i>
+                                        Top 5 Categorias Mais Vendidas
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="topCategoriasChart" style="height: 300px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-5">
+                        <h2 class="mt-4 mb-4">Detalhes das Movimentações</h2>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        Movimentações de Entrada
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ entrada_count }}</h2>
+                                        <small class="text-muted">Movimentações de entrada no período</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        Movimentações de Saída
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ saida_count }}</h2>
+                                        <small class="text-muted">Movimentações de saída no período</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header" tabindex="0">
+                                <i class="fas fa-table me-1"></i>
+                                Movimentações no período
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped" tabindex="0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Data</th>
+                                            <th>Produto</th>
+                                            <th>Categoria</th>
+                                            <th>Tipo</th>
+                                            <th>Quantidade</th>
+                                            <th>Fornecedor</th>
+                                            <th>Preço</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for movimentacao in movimentacoes_periodo %}
+                                        <tr>
+                                            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                            <td>{{ movimentacao.data|date:"d/m/Y H:i" }}</td>
+                                            <td>{{ movimentacao.produto_nome }}</td>
+                                            <td>{{ movimentacao.categoria_nome }}</td>
+                                            <td>{{ movimentacao.get_tipo_display }}</td>
+                                            <td>{{ movimentacao.quantidade }}</td>
+                                            <td>{{ movimentacao.fornecedor|default:"-" }}</td>
+                                            <td>R$ {{ movimentacao.custo_unitario|default:"0.00" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7">Nenhuma movimentação registrada neste período.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mt-3">
+                                    <div class="text-muted mb-2 mb-sm-0">
+                                        Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} movimentações
+                                    </div>
+                                    <nav aria-label="Paginação das movimentações">
+                                        <ul class="pagination mb-0">
+                                            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                                                {% if page_obj.has_previous %}
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_string }}" tabindex="0">Anterior</a>
+                                                {% else %}
+                                                <span class="page-link">Anterior</span>
+                                                {% endif %}
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                                            </li>
+                                            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                                                {% if page_obj.has_next %}
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_string }}" tabindex="0">Próxima</a>
+                                                {% else %}
+                                                <span class="page-link">Próxima</span>
+                                                {% endif %}
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div vw class="enabled">
+                        <div vw-access-button class="active"></div>
+                        <div vw-plugin-wrapper>
+                            <div class="vw-plugin-top-wrapper"></div>
+                        </div>
+                    </div>
+
+                    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+                    <script>
+                        new window.VLibras.Widget('https://vlibras.gov.br/app');
+                    </script>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; 2025</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <script>
+            const topProdutos = {{ top_produtos|safe }};
+            const topCategorias = {{ top_categorias|safe }};
+
+            function generateDistinctColors(count, palette) {
+                return chroma.scale(palette).mode('lch').colors(count);
+            }
+
+            const barColorsProdutos = generateDistinctColors(topProdutos.length, ['#d89b3c', '#b65441', '#2e7d6f', '#314967']);
+            const barColorsCategorias = generateDistinctColors(topCategorias.length, ['#f0c987', '#cf7b5c', '#5f9f93', '#6b88a6']);
+
+            const topProdutosCtx = document.getElementById('topProdutosChart').getContext('2d');
+            new Chart(topProdutosCtx, {
+                type: 'bar',
+                data: {
+                    labels: topProdutos.map(item => item.produto__nome),
+                    datasets: [{
+                        label: 'Valor de Vendas (R$)',
+                        data: topProdutos.map(item => parseFloat(item.total_vendas)),
+                        backgroundColor: barColorsProdutos,
+                        borderColor: barColorsProdutos.map(color => chroma(color).darken(1).hex()),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            },
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            const topCategoriasCtx = document.getElementById('topCategoriasChart').getContext('2d');
+            new Chart(topCategoriasCtx, {
+                type: 'bar',
+                data: {
+                    labels: topCategorias.map(item => item.produto__categoria__nome),
+                    datasets: [{
+                        label: 'Valor de Vendas (R$)',
+                        data: topCategorias.map(item => parseFloat(item.total_vendas)),
+                        backgroundColor: barColorsCategorias,
+                        borderColor: barColorsCategorias.map(color => chroma(color).darken(1).hex()),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            },
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        </script>
+    </body>
+</html>
