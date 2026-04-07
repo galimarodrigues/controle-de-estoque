@@ -11,7 +11,7 @@ class PeriodoConsultaForm(forms.Form):
             'class': 'form-control',
             'type': 'date'
         }),
-        initial=lambda: (timezone.now() - timedelta(days=7)).date()
+        initial=lambda: (timezone.now() - timedelta(days=30)).date()
     )
 
     data_fim = forms.DateField(
