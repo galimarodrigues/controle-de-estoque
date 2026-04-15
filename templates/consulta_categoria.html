@@ -4,16 +4,13 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Consulta por período do estoque" />
+        <meta name="description" content="Consulta por categoria do estoque" />
         <meta name="author" content="" />
-        <title>Consulta por Período</title>
+        <title>Consulta por Categoria</title>
         {% load static %}
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -54,10 +51,10 @@
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4">
-                        <h1 class="mt-4">Consulta por Período</h1>
+                        <h1 class="mt-4">Consulta por Categoria</h1>
                         <ol class="breadcrumb mb-4">
                             <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
-                            <li class="breadcrumb-item active">Consulta por Período</li>
+                            <li class="breadcrumb-item active">Consulta por Categoria</li>
                         </ol>
 
                         <div class="row g-4 mb-4">
@@ -70,16 +67,17 @@
                                     <div class="card-body">
                                         <form method="get">
                                             <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="id_data_inicio" class="form-label">Data de início</label>
-                                                    {{ form.data_inicio }}
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="id_data_fim" class="form-label">Data de fim</label>
-                                                    {{ form.data_fim }}
+                                                <div class="col-md-12 mb-3">
+                                                    <label for="id_categoria" class="form-label">Categoria</label>
+                                                    <select id="id_categoria" name="categoria" class="form-select" aria-label="Selecionar categoria">
+                                                        <option value="">Selecione uma categoria</option>
+                                                        {% for categoria in categorias %}
+                                                        <option value="{{ categoria.id }}" {% if categoria_selecionada and categoria.id == categoria_selecionada.id %}selected{% endif %}>{{ categoria.nome }}</option>
+                                                        {% endfor %}
+                                                    </select>
                                                 </div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">Atualizar</button>
+                                            <button type="submit" class="btn btn-primary">Pesquisar</button>
                                         </form>
                                     </div>
                                 </div>
@@ -94,7 +92,7 @@
                                     <div class="card-body d-flex align-items-center">
                                         <div class="text-center w-100">
                                             <h2 class="text-success mb-0">+R$ {{ total_arrecadado|floatformat:2 }}</h2>
-                                            <small class="text-muted">Valor total das saídas</small>
+                                            <small class="text-muted">Valor total das saídas da categoria ({{ periodo_label }})</small>
                                         </div>
                                     </div>
                                 </div>
@@ -109,40 +107,12 @@
                                     <div class="card-body d-flex align-items-center">
                                         <div class="text-center w-100">
                                             <h2 class="text-danger mb-0">-R$ {{ total_custos|floatformat:2 }}</h2>
-                                            <small class="text-muted">Valor total das entradas</small>
+                                            <small class="text-muted">Valor total das entradas da categoria ({{ periodo_label }})</small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Top 5 Produtos Mais Vendidos
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="topProdutosChart" style="height: 300px;"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header" tabindex="0">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Top 5 Categorias Mais Vendidas
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="topCategoriasChart" style="height: 300px;"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-5">
-                        <h2 class="mt-4 mb-4">Detalhes das Movimentações</h2>
 
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
@@ -152,7 +122,7 @@
                                     </div>
                                     <div class="card-body text-center">
                                         <h2 class="mb-0">{{ contagem_entradas }}</h2>
-                                        <small class="text-muted">Movimentações de entrada no período</small>
+                                        <small class="text-muted">Movimentações de entrada da categoria (Últimos 30 dias)</small>
                                     </div>
                                 </div>
                             </div>
@@ -163,16 +133,69 @@
                                     </div>
                                     <div class="card-body text-center">
                                         <h2 class="mb-0">{{ contagem_saidas }}</h2>
-                                        <small class="text-muted">Movimentações de saída no período</small>
+                                        <small class="text-muted">Movimentações de saída da categoria (Últimos 30 dias)</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        Top 3 Produtos Mais Vendidos (Últimos 30 dias)
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            {% if produtos_mais_vendidos %}
+                                                {% for produto in produtos_mais_vendidos %}
+                                                <li class="list-group-item">
+                                                    {{ forloop.counter }}. {{ produto.produto_nome }} — {{ produto.total_quantidade }} vendidos
+                                                </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li class="list-group-item">Nenhum produto vendido nos últimos 30 dias.</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        3 Produtos Menos Vendidos (Últimos 30 dias)
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            {% if produtos_menos_vendidos %}
+                                                {% for produto in produtos_menos_vendidos %}
+                                                <li class="list-group-item">
+                                                    {{ forloop.counter }}. {{ produto.produto_nome }} — {{ produto.total_quantidade }} vendidos
+                                                </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li class="list-group-item">Nenhum produto vendido nos últimos 30 dias.</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if categoria_selecionada %}
+                        <div class="alert alert-info" role="status">
+                            Resultados para a categoria: <strong>{{ categoria_selecionada.nome }}</strong>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-secondary" role="status">
+                            Selecione uma categoria e clique em Pesquisar para ver as movimentações.
+                        </div>
+                        {% endif %}
+
                         <div class="card mb-4">
                             <div class="card-header" tabindex="0">
                                 <i class="fas fa-table me-1"></i>
-                                Movimentações no período
+                                Movimentações da categoria (Últimos 30 dias)
                             </div>
                             <div class="card-body">
                                 <table class="table table-striped" tabindex="0">
@@ -189,7 +212,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for movimentacao in movimentacoes_periodo %}
+                                        {% for movimentacao in movimentacoes_categoria %}
                                         <tr>
                                             <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
                                             <td>{{ movimentacao.data|date:"d/m/Y H:i" }}</td>
@@ -202,7 +225,7 @@
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="7">Nenhuma movimentação registrada neste período.</td>
+                                            <td colspan="8">{% if categoria_selecionada %}Nenhuma movimentação registrada para esta categoria nos últimos 30 dias.{% else %}Nenhuma categoria selecionada.{% endif %}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -262,6 +285,10 @@
                         </div>
                     </div>
                 </footer>
+            </div>
+        </div>
+    </body>
+</html>
             </div>
         </div>
         <script>
