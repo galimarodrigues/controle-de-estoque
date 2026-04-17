@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.db.models import F, FloatField, Sum
+from django.db.models import F, FloatField, Q, Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.utils import timezone
 
-from estoque.models import Categoria, Movimentacao
+from estoque.models import Categoria, Movimentacao, Produto
 from .forms import PeriodoConsultaForm
 
 
@@ -148,6 +148,65 @@ def consulta_categoria(request):
     }
 
     return render(request, 'consulta_categoria.html', contexto)
+
+
+def consulta_produto(request):
+    """View para exibir o formulário de consulta por produto."""
+    produtos = Produto.objects.order_by('nome')
+    produto_selecionado_id = request.GET.get('produto', '')
+    produto_selecionado = None
+
+    contexto = {
+        'produtos': produtos,
+        'produto_selecionado_id': produto_selecionado_id,
+        'produto_selecionado': produto_selecionado,
+    }
+
+    if produto_selecionado_id:
+        try:
+            produto_selecionado = Produto.objects.get(pk=int(produto_selecionado_id))
+        except (Produto.DoesNotExist, ValueError):
+            produto_selecionado = None
+
+    if not produto_selecionado:
+        return render(request, 'consulta_produto.html', contexto)
+
+    trinta_dias_atras = timezone.now() - timedelta(days=30)
+    movimentacoes_30dias = Movimentacao.objects.filter(produto=produto_selecionado, data__gte=trinta_dias_atras)
+
+    receita_30dias = total_por_tipo(movimentacoes_30dias, 'saida')
+    entrada_quantidade_30dias = movimentacoes_30dias.filter(tipo='entrada').aggregate(total=Sum('quantidade'))['total']
+    if entrada_quantidade_30dias is None:
+        entrada_quantidade_30dias = 0
+
+    saida_quantidade_30dias = movimentacoes_30dias.filter(tipo='saida').aggregate(total=Sum('quantidade'))['total']
+    if saida_quantidade_30dias is None:
+        saida_quantidade_30dias = 0
+
+    unidades_perdidas_30dias = movimentacoes_30dias.filter(
+        tipo='saida'
+    ).filter(
+        Q(custo_unitario__isnull=True) | Q(custo_unitario=0)
+    ).aggregate(total=Sum('quantidade'))['total']
+    if unidades_perdidas_30dias is None:
+        unidades_perdidas_30dias = 0
+
+    estoque_atual = produto_selecionado.quantidade
+    estoque_inicial_30dias = max(0, estoque_atual - entrada_quantidade_30dias + saida_quantidade_30dias)
+    estoque_medio_30dias = (estoque_inicial_30dias + estoque_atual) / 2 if estoque_atual or estoque_inicial_30dias else 0
+    giro_30dias = (receita_30dias / estoque_medio_30dias) if estoque_medio_30dias else 0
+
+    contexto.update({
+        'produto_selecionado': produto_selecionado,
+        'estoque_atual': estoque_atual,
+        'valor_unitario': produto_selecionado.preco,
+        'receita_estoque_atual': produto_selecionado.preco * estoque_atual,
+        'receita_30dias': receita_30dias,
+        'unidades_perdidas_30dias': unidades_perdidas_30dias,
+        'giro_30dias': giro_30dias,
+    })
+
+    return render(request, 'consulta_produto.html', contexto)
 
 
 def page_not_found(request, exception):
