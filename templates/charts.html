@@ -34,15 +34,11 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Painel de Controle
                             </a>
-                            <div class="sb-sidenav-menu-heading">Complementos</div>
-                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Graficos
-                            </a>
                             <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                                Estoque
+                                Registro de Movimentacao
                             </a>
+                            <div class="sb-sidenav-menu-heading">Consultas</div>
                             <a class="nav-link" tabindex="0" href="/consulta/periodo/">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
                                 Consulta por periodo
@@ -55,6 +51,12 @@
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
                                 Consulta por produto
                             </a>
+                            <div class="sb-sidenav-menu-heading">Complementos</div>
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Indicadores de Desempenho
+                            </a>
+
                         </div>
                     </div>
                 </nav>
@@ -65,8 +67,8 @@
                         <section class="hero-panel mt-4">
                             <div class="hero-copy">
                                 <span class="eyebrow">Visual analitico</span>
-                                <h1>Graficos</h1>
-                                <p>Leitura visual do estoque por categoria com destaque para volume operacional e valor financeiro atual.</p>
+                                <h1>Indicadores de Desempenho</h1>
+                                <p>Pagina dedicada para exibicao de indicadores de desempenho do estoque.</p>
                             </div>
                             <div class="hero-metrics">
                                 <article class="metric-card accent-amber">
@@ -91,6 +93,113 @@
                             <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
                             <li class="breadcrumb-item active">Graficos</li>
                         </ol>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        Produtos Mais Vendidos (Últimos 30 dias)
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            {% if produtos_mais_vendidos %}
+                                                {% for produto in produtos_mais_vendidos %}
+                                                <li class="list-group-item">
+                                                    {{ forloop.counter }}. {{ produto.produto }} — {{ produto.vendas }} vendidos
+                                                </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li class="list-group-item">Nenhum produto vendido nos últimos 30 dias.</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        Produtos Menos Vendidos (Últimos 30 dias)
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            {% if produtos_menos_vendidos %}
+                                                {% for produto in produtos_menos_vendidos %}
+                                                <li class="list-group-item">
+                                                    {{ forloop.counter }}. {{ produto.produto }} — {{ produto.vendas }} vendidos
+                                                </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li class="list-group-item">Nenhum produto vendido nos últimos 30 dias.</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header card-header-modern" tabindex="0">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                Produtos com Baixo Estoque
+                            </div>
+                            <div class="card-body">
+                                {% if produtos_baixo_estoque %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for produto in produtos_baixo_estoque %}
+                                        <li class="list-group-item" style="background-color: #ffe6e6; border-left: 4px solid #dc3545;">
+                                            <strong style="color: #dc3545;">{{ produto.nome }}</strong>
+                                            <br>
+                                            <small style="color: #666;">
+                                                Estoque: <strong>{{ produto.quantidade }}</strong> unidades | 
+                                                Limite: <strong>{{ produto.limite }}</strong> unidades | 
+                                                Médio histórico: <strong>{{ produto.estoque_medio }}</strong> unidades
+                                            </small>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="alert alert-success mb-0" role="status">
+                                        Não há produtos com baixo estoque
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header card-header-modern" tabindex="0">
+                                <i class="fas fa-table me-1"></i>
+                                Visão geral do estoque
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Produto</th>
+                                                <th>Estoque</th>
+                                                <th>Consumo/dia</th>
+                                                <th>Giro 30 dias</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for produto in produtos_estoque %}
+                                            <tr>
+                                                <td>{{ produto.nome }}</td>
+                                                <td>{{ produto.estoque }}</td>
+                                                <td>{{ produto.consumo_diario|floatformat:2 }}</td>
+                                                <td>{{ produto.giro_30dias|floatformat:2 }}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">Nenhum produto disponível em estoque.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-muted small mt-3 mb-0">Consumo/dia calculado a partir da média das saídas nos últimos 30 dias. O giro considera as saídas em relação ao estoque atual do produto.</p>
+                            </div>
+                        </div>
 
                         <div class="row g-4">
                             <div class="col-md-6">

@@ -152,6 +152,7 @@ def consulta_categoria(request):
 
 def consulta_produto(request):
     """View para exibir o formulário de consulta por produto."""
+
     produtos = Produto.objects.order_by('nome')
     produto_selecionado_id = request.GET.get('produto', '')
     produto_selecionado = None
@@ -186,7 +187,7 @@ def consulta_produto(request):
     unidades_perdidas_30dias = movimentacoes_30dias.filter(
         tipo='saida'
     ).filter(
-        Q(custo_unitario__isnull=True) | Q(custo_unitario=0)
+        Q(custo_unitario__isnull=True) | Q(custo_unitario=0) # Perdas = saídas com custo unitário igual a zero ou nulo
     ).aggregate(total=Sum('quantidade'))['total']
     if unidades_perdidas_30dias is None:
         unidades_perdidas_30dias = 0
