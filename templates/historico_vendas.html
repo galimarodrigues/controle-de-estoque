@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Histórico de vendas da cafeteria" />
+        <meta name="author" content="" />
+        <title>Histórico de Vendas</title>
+        {% load static %}
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Principal</div>
+                            <a tabindex="0" class="nav-link" href="/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Painel de Controle
+                            </a>
+                            <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Registro de Movimentacao
+                            </a>
+                            <div class="sb-sidenav-menu-heading">Consultas</div>
+                            <a class="nav-link" tabindex="0" href="/consulta/periodo/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por periodo
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/categoria/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por categoria
+                            </a>
+                                <a class="nav-link" tabindex="0" href="/consulta/produto/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por produto
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/historico/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
+                                Histórico de Vendas
+                            </a>
+                            <div class="sb-sidenav-menu-heading">Complementos</div>
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Indicadores de Desempenho
+                            </a>
+
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Histórico de Vendas</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
+                            <li class="breadcrumb-item active">Histórico de Vendas</li>
+                        </ol>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-filter me-1"></i>
+                                        Filtro de consulta
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="get">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label for="id_produto" class="form-label">Produto</label>
+                                                    <select id="id_produto" name="produto" class="form-select" aria-label="Selecionar produto">
+                                                        <option value="" {% if not produto_selecionado_id %}selected{% endif %}>Todas as vendas</option>
+                                                        {% for produto in produtos %}
+                                                        <option value="{{ produto.id }}" {% if produto_selecionado_id == produto.id|stringformat:"s" %}selected{% endif %}>{{ produto.nome }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Pesquisar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-lg-12">
+                                {% if produto_selecionado %}
+                                <div class="alert alert-success" role="status">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Exibindo apenas as vendas do produto: <strong>{{ produto_selecionado.nome }}</strong>.
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info" role="status">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Os gráficos mostram as vendas totais. Selecione um produto específico para filtrar os dados.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 1: Vendas do dia vs últimos 7 dias -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                Vendas Diárias: Hoje vs Últimos 7 Dias
+                            </div>
+                            <div class="card-body">
+                                <canvas id="graficoVendas7Dias" width="100%" height="50"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 2: Vendas da semana atual vs últimas 4 semanas -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                Vendas Semanais: Semana Atual vs Últimas 4 Semanas
+                            </div>
+                            <div class="card-body">
+                                <canvas id="graficoVendasSemanas" width="100%" height="50"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 3: Vendas do mês atual vs últimos 6 meses -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                Vendas Mensais: Mês Atual vs Últimos 6 Meses
+                            </div>
+                            <div class="card-body">
+                                <canvas id="graficoVendasMeses" width="100%" height="50"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div vw class="enabled">
+                        <div vw-access-button class="active"></div>
+                        <div vw-plugin-wrapper>
+                            <div class="vw-plugin-top-wrapper"></div>
+                        </div>
+                    </div>
+
+                    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+                    <script>
+                        new window.VLibras.Widget('https://vlibras.gov.br/app');
+                    </script>
+                    <script>
+                        // Dados dos gráficos passados do Django
+                        const vendas7Dias = {{ vendas_7dias|safe }};
+                        const labels7Dias = {{ labels_7dias|safe }};
+                        const vendasSemanas = {{ vendas_semanas|safe }};
+                        const labelsSemanas = {{ labels_semanas|safe }};
+                        const vendasMeses = {{ vendas_meses|safe }};
+                        const labelsMeses = {{ labels_meses|safe }};
+
+                        // Cores para os gráficos
+                        const corPadrao = 'rgba(54, 162, 235, 0.6)';
+                        const corPadraoBorda = 'rgba(54, 162, 235, 1)';
+                        const corDestaque = 'rgba(255, 99, 132, 0.8)';
+                        const corDestaqueBorda = 'rgba(255, 99, 132, 1)';
+
+                        // Gráfico 1: Vendas dos últimos 7 dias + hoje
+                        const ctx7Dias = document.getElementById('graficoVendas7Dias').getContext('2d');
+                        const cores7Dias = vendas7Dias.map((valor, index) => 
+                            index === vendas7Dias.length - 1 ? corDestaque : corPadrao
+                        );
+                        const coresBorda7Dias = vendas7Dias.map((valor, index) => 
+                            index === vendas7Dias.length - 1 ? corDestaqueBorda : corPadraoBorda
+                        );
+
+                        new Chart(ctx7Dias, {
+                            type: 'bar',
+                            data: {
+                                labels: labels7Dias,
+                                datasets: [{
+                                    label: 'Vendas (R$)',
+                                    data: vendas7Dias,
+                                    backgroundColor: cores7Dias,
+                                    borderColor: coresBorda7Dias,
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return 'R$ ' + value.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return 'R$ ' + context.parsed.y.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Gráfico 2: Vendas semanais
+                        const ctxSemanas = document.getElementById('graficoVendasSemanas').getContext('2d');
+                        const coresSemanas = vendasSemanas.map((valor, index) => 
+                            index === vendasSemanas.length - 1 ? corDestaque : corPadrao
+                        );
+                        const coresBordaSemanas = vendasSemanas.map((valor, index) => 
+                            index === vendasSemanas.length - 1 ? corDestaqueBorda : corPadraoBorda
+                        );
+
+                        new Chart(ctxSemanas, {
+                            type: 'bar',
+                            data: {
+                                labels: labelsSemanas,
+                                datasets: [{
+                                    label: 'Vendas (R$)',
+                                    data: vendasSemanas,
+                                    backgroundColor: coresSemanas,
+                                    borderColor: coresBordaSemanas,
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return 'R$ ' + value.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return 'R$ ' + context.parsed.y.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Gráfico 3: Vendas mensais
+                        const ctxMeses = document.getElementById('graficoVendasMeses').getContext('2d');
+                        const coresMeses = vendasMeses.map((valor, index) => 
+                            index === vendasMeses.length - 1 ? corDestaque : corPadrao
+                        );
+                        const coresBordaMeses = vendasMeses.map((valor, index) => 
+                            index === vendasMeses.length - 1 ? corDestaqueBorda : corPadraoBorda
+                        );
+
+                        new Chart(ctxMeses, {
+                            type: 'bar',
+                            data: {
+                                labels: labelsMeses,
+                                datasets: [{
+                                    label: 'Vendas (R$)',
+                                    data: vendasMeses,
+                                    backgroundColor: coresMeses,
+                                    borderColor: coresBordaMeses,
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return 'R$ ' + value.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return 'R$ ' + context.parsed.y.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    </script>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; 2025</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </body>
+</html>

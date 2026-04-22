@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum, Count
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .forms import CategoriaForm, EditCategoriaForm, EditProdutoForm, MovimentacaoForm, ProdutoForm
 from .models import Categoria, Movimentacao, Produto, UNIDADES_VALIDAS
@@ -108,6 +111,77 @@ def charts(request):
     dados_ordenados_pizza = sorted(dados_pizza, key=lambda x: x[1], reverse=True)
     descricao_pizza = [f"{nome_categoria}: R$ {valor:.2f}" for nome_categoria, valor in dados_ordenados_pizza]
 
+    trinta_dias_atras = timezone.now() - timedelta(days=30)
+    saidas_30dias = Movimentacao.objects.filter(
+        data__gte=trinta_dias_atras,
+        tipo='saida',
+        produto__isnull=False
+    ).values('produto').annotate(total_saida=Sum('quantidade'))
+
+    saida_por_produto = {
+        item['produto']: item['total_saida'] or 0
+        for item in saidas_30dias
+    }
+
+    produtos_estoque = []
+    produtos_com_estoque = Produto.objects.filter(quantidade__gt=0).order_by('nome')
+    for produto in produtos_com_estoque:
+        estoque_atual = produto.quantidade
+        saida_quantidade = saida_por_produto.get(produto.id, 0)
+        consumo_diario = round(saida_quantidade / 30, 2)
+        giro_30dias = round(saida_quantidade / estoque_atual, 2) if estoque_atual else 0
+        produtos_estoque.append({
+            'nome': produto.nome,
+            'estoque': estoque_atual,
+            'consumo_diario': consumo_diario,
+            'giro_30dias': giro_30dias,
+        })
+
+    # Produtos mais vendidos (top 5)
+    produtos_mais_vendidos = sorted(
+        [(item['produto'], item['total_saida']) for item in saidas_30dias],
+        key=lambda x: x[1],
+        reverse=True
+    )[:5]
+    produtos_mais_vendidos = [
+        {'produto': Produto.objects.get(id=produto_id).nome, 'vendas': vendas}
+        for produto_id, vendas in produtos_mais_vendidos
+    ]
+
+    # Produtos menos vendidos (bottom 5)
+    produtos_menos_vendidos = sorted(
+        [(item['produto'], item['total_saida']) for item in saidas_30dias],
+        key=lambda x: x[1]
+    )[:5]
+    produtos_menos_vendidos = [
+        {'produto': Produto.objects.get(id=produto_id).nome, 'vendas': vendas}
+        for produto_id, vendas in produtos_menos_vendidos
+    ]
+
+    # Produtos com baixo estoque (< 30% do estoque médio histórico)
+    produtos_baixo_estoque = []
+    for produto in Produto.objects.all():
+        # Calcular estoque médio histórico baseado nas entradas
+        entradas = Movimentacao.objects.filter(
+            produto=produto,
+            tipo='entrada'
+        ).aggregate(total_quantidade=Sum('quantidade'), count=Count('id'))
+        
+        if entradas['count'] and entradas['count'] > 0:
+            estoque_medio_historico = entradas['total_quantidade'] / entradas['count']
+            limite_baixo_estoque = estoque_medio_historico * 0.3
+            
+            if produto.quantidade < limite_baixo_estoque:
+                produtos_baixo_estoque.append({
+                    'nome': produto.nome,
+                    'quantidade': produto.quantidade,
+                    'estoque_medio': round(estoque_medio_historico, 2),
+                    'limite': round(limite_baixo_estoque, 2)
+                })
+    
+    # Ordenar por quantidade (menor primeiro)
+    produtos_baixo_estoque.sort(key=lambda x: x['quantidade'])
+
     return render(request, 'charts.html', {
         'resumo_estoque': resumo_estoque,
         'categorias': category_names,
@@ -115,6 +189,10 @@ def charts(request):
         'stock_values': stock_values,
         'descricao_barras': descricao_barras,
         'descricao_pizza': descricao_pizza,
+        'produtos_estoque': produtos_estoque,
+        'produtos_mais_vendidos': produtos_mais_vendidos,
+        'produtos_menos_vendidos': produtos_menos_vendidos,
+        'produtos_baixo_estoque': produtos_baixo_estoque,
     })
 
 
