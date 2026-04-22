@@ -24,11 +24,11 @@ class PeriodoConsultaForm(forms.Form):
     )
 
     def clean(self):
-        cleaned_data = super().clean()
-        data_inicio = cleaned_data.get('data_inicio')
-        data_fim = cleaned_data.get('data_fim')
+        dados_limpos = super().clean()
+        data_inicio = dados_limpos.get('data_inicio')
+        data_fim = dados_limpos.get('data_fim')
 
         if data_inicio and data_fim and data_inicio > data_fim:
             raise forms.ValidationError('A data de início deve ser anterior à data de fim.')
 
-        return cleaned_data
+        return dados_limpos

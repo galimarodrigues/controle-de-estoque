@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Consulta por produto do estoque" />
+        <meta name="author" content="" />
+        <title>Consulta por Produto</title>
+        {% load static %}
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Principal</div>
+                            <a class="nav-link" tabindex="0" href="/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Painel de Controle
+                            </a>
+                            <div class="sb-sidenav-menu-heading">Complementos</div>
+                            <a class="nav-link" tabindex="0" href="/estoque/graficos/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Gráficos
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/estoque/tabelas/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Estoque
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/periodo/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por período
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/categoria/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por categoria
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/produto/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por produto
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Consulta por Produto</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
+                            <li class="breadcrumb-item active">Consulta por Produto</li>
+                        </ol>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-filter me-1"></i>
+                                        Filtro de consulta
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="get">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label for="id_produto" class="form-label">Produto</label>
+                                                    <select id="id_produto" name="produto" class="form-select" aria-label="Selecionar produto">
+                                                        <option value="">Selecione um produto</option>
+                                                        {% for produto in produtos %}
+                                                        <option value="{{ produto.id }}" {% if produto_selecionado_id == produto.id|stringformat:"s" %}selected{% endif %}>{{ produto.nome }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Pesquisar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if produto_selecionado %}
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-12">
+                                <div class="card">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-boxes me-1"></i>
+                                        Visão geral do produto selecionado
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-1">
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Produto</div>
+                                                    <div class="fw-semibold fs-5">{{ produto_selecionado.nome }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Quantidade disponível em estoque</div>
+                                                    <div class="fw-semibold fs-5">{{ estoque_atual }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Preço unitário</div>
+                                                    <div class="fw-semibold fs-5 text-primary">R$ {{ valor_unitario|floatformat:2 }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Arrecadação com venda total do estoque disponível</div>
+                                                    <div class="fw-semibold fs-5 text-success">R$ {{ receita_estoque_atual|floatformat:2 }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Total de vendas nos últimos 30 dias</div>
+                                                    <div class="fw-semibold fs-5 text-success">R$ {{ receita_30dias|floatformat:2 }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Unidades perdidas nos últimos 30 dias</div>
+                                                    <div class="fw-semibold fs-5 text-danger">{{ unidades_perdidas_30dias }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded-3 py-2 px-3">
+                                                    <div class="text-muted">Giro de estoque (30 dias)</div>
+                                                    <div class="fw-semibold fs-5">{{ giro_30dias|floatformat:2 }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="row mb-4">
+                            <div class="col-lg-12">
+                                <div class="alert alert-secondary" role="status">
+                                    Selecione um produto na lista e clique em Pesquisar. 
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div vw class="enabled">
+                        <div vw-access-button class="active"></div>
+                        <div vw-plugin-wrapper>
+                            <div class="vw-plugin-top-wrapper"></div>
+                        </div>
+                    </div>
+
+                    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+                    <script>
+                        new window.VLibras.Widget('https://vlibras.gov.br/app');
+                    </script>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; 2025</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </body>
+</html>
