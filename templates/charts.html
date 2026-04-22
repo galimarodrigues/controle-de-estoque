@@ -51,6 +51,10 @@
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
                                 Consulta por produto
                             </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/historico/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
+                                Histórico de Vendas
+                            </a>
                             <div class="sb-sidenav-menu-heading">Complementos</div>
                             <a tabindex="0" class="nav-link" href="/estoque/graficos/">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
@@ -151,15 +155,14 @@
                                             <br>
                                             <small style="color: #666;">
                                                 Estoque: <strong>{{ produto.quantidade }}</strong> unidades | 
-                                                Limite: <strong>{{ produto.limite }}</strong> unidades | 
-                                                Médio histórico: <strong>{{ produto.estoque_medio }}</strong> unidades
+                                                Quantidade crítica: <strong>{{ produto.limite }}</strong> unidades 
                                             </small>
                                         </li>
                                         {% endfor %}
                                     </ul>
                                 {% else %}
                                     <div class="alert alert-success mb-0" role="status">
-                                        Não há produtos com baixo estoque
+                                        Não há produtos com baixo estoque. (Produtos são considerados com baixo estoque quando a quantidade é inferior a 30 % do estoque médio do produto)
                                     </div>
                                 {% endif %}
                             </div>

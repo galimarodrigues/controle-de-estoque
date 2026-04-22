@@ -210,6 +210,107 @@ def consulta_produto(request):
     return render(request, 'consulta_produto.html', contexto)
 
 
+def historico_vendas(request):
+    """View para exibir o histórico de vendas da cafeteria."""
+
+    produtos = Produto.objects.order_by('nome')
+    produto_selecionado_id = request.GET.get('produto', '')
+
+    produto_selecionado = None
+    filtro_produto = {}
+    if produto_selecionado_id:
+        try:
+            produto_selecionado = Produto.objects.get(pk=int(produto_selecionado_id))
+            filtro_produto = {'produto': produto_selecionado}
+        except (Produto.DoesNotExist, ValueError):
+            produto_selecionado = None
+            filtro_produto = {}
+
+    contexto = {
+        'produtos': produtos,
+        'produto_selecionado_id': produto_selecionado_id,
+        'produto_selecionado': produto_selecionado,
+    }
+
+    # Gráfico 1: Vendas do dia de hoje vs últimos 7 dias
+    hoje = timezone.now().date()
+    vendas_7dias = []
+    labels_7dias = []
+    
+    for dias_atras in range(7, -1, -1):  # De 7 dias atrás até hoje
+        data_atual = hoje - timedelta(days=dias_atras)
+        inicio_dia = timezone.make_aware(datetime.combine(data_atual, datetime.min.time()))
+        fim_dia = timezone.make_aware(datetime.combine(data_atual, datetime.max.time()))
+        
+        vendas_dia = Movimentacao.objects.filter(
+            data__range=(inicio_dia, fim_dia),
+            tipo='saida',
+            **filtro_produto
+        ).aggregate(total=Coalesce(Sum(valor_por_movimentacao()), 0, output_field=FloatField()))['total']
+        
+        vendas_7dias.append(float(vendas_dia))
+        labels_7dias.append(data_atual.strftime('%d/%m'))
+
+    # Gráfico 2: Vendas da semana atual vs últimas 4 semanas
+    # Semana começa no domingo e termina no sábado
+    hoje_semana = hoje - timedelta(days=hoje.weekday() + 1)  # Domingo da semana atual
+    vendas_semanas = []
+    labels_semanas = []
+    
+    for semanas_atras in range(4, -1, -1):  # Últimas 4 semanas + semana atual
+        inicio_semana = hoje_semana - timedelta(weeks=semanas_atras)
+        fim_semana = inicio_semana + timedelta(days=6)
+        
+        vendas_semana = Movimentacao.objects.filter(
+            data__date__range=(inicio_semana, fim_semana),
+            tipo='saida',
+            **filtro_produto
+        ).aggregate(total=Coalesce(Sum(valor_por_movimentacao()), 0, output_field=FloatField()))['total']
+        
+        vendas_semanas.append(float(vendas_semana))
+        if semanas_atras == 0:
+            labels_semanas.append('Atual')
+        else:
+            labels_semanas.append(f'{semanas_atras} sem. atrás')
+
+    # Gráfico 3: Vendas do mês atual vs últimos 6 meses
+    mes_atual = hoje.replace(day=1)
+    vendas_meses = []
+    labels_meses = []
+    
+    for meses_atras in range(6, -1, -1):  # Últimos 6 meses + mês atual
+        inicio_mes = mes_atual - timedelta(days=30 * meses_atras)
+        if meses_atras == 0:
+            fim_mes = hoje
+        else:
+            # Próximo mês menos 1 dia
+            proximo_mes = mes_atual - timedelta(days=30 * (meses_atras - 1))
+            fim_mes = proximo_mes - timedelta(days=1)
+        
+        vendas_mes = Movimentacao.objects.filter(
+            data__date__range=(inicio_mes, fim_mes),
+            tipo='saida',
+            **filtro_produto
+        ).aggregate(total=Coalesce(Sum(valor_por_movimentacao()), 0, output_field=FloatField()))['total']
+        
+        vendas_meses.append(float(vendas_mes))
+        if meses_atras == 0:
+            labels_meses.append('Atual')
+        else:
+            labels_meses.append(f'{meses_atras} mês(es) atrás')
+
+    contexto.update({
+        'vendas_7dias': vendas_7dias,
+        'labels_7dias': labels_7dias,
+        'vendas_semanas': vendas_semanas,
+        'labels_semanas': labels_semanas,
+        'vendas_meses': vendas_meses,
+        'labels_meses': labels_meses,
+    })
+
+    return render(request, 'historico_vendas.html', contexto)
+
+
 def page_not_found(request, exception):
     return render(request, '404.html', status=404)
 
