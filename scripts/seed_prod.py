@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 import argparse
 import html
+import os
 import random
 import re
 import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 from dataclasses import dataclass
+from datetime import timedelta
 from decimal import Decimal
 from http.cookiejar import CookieJar
+from pathlib import Path
 
 
 UNIDADE_MAP = {
@@ -43,7 +47,21 @@ MOTIVOS_SAIDA = [
     "Consumo operacional",
     "Producao diaria",
     "Ajuste de estoque",
+    "Venda registrada",
+    "Perda operacional",
 ]
+
+
+LOW_STOCK_PRODUCTS = {
+    "Cha Matcha",
+    "Chocolate em Barra para Raspas",
+    "Touca Descartavel",
+    "Sacola Kraft",
+    "Gengibre",
+}
+
+
+SEED_MARKER = "[seed_prod:doug-braz-history]"
 
 
 BASE_DATA = {
@@ -189,6 +207,7 @@ class MovimentacaoSeed:
     motivo: str
     fornecedor: str
     observacao: str
+    dias_atras: int = 0
 
 
 class SeedClient:
@@ -202,8 +221,20 @@ class SeedClient:
         self.opener.addheaders = [("User-Agent", "estoque-seed-script/1.0")]
 
     def fetch_tables_page(self) -> str:
-        with self.opener.open(f"{self.base_url}/estoque/tabelas/") as response:
-            return response.read().decode("utf-8")
+        last_error = None
+        for attempt in range(1, 5):
+            try:
+                with self.opener.open(
+                    f"{self.base_url}/estoque/tabelas/",
+                    timeout=45,
+                ) as response:
+                    return response.read().decode("utf-8")
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt == 4:
+                    break
+                time.sleep(attempt * 2)
+        raise last_error
 
     def post_form(self, path: str, data: dict[str, str]) -> None:
         encoded = urllib.parse.urlencode(data).encode("utf-8")
@@ -217,8 +248,17 @@ class SeedClient:
                 "Referer": f"{self.base_url}/estoque/tabelas/",
             },
         )
-        with self.opener.open(request) as response:
-            response.read()
+        last_error = None
+        for attempt in range(1, 5):
+            try:
+                with self.opener.open(request, timeout=45) as response:
+                    response.read()
+                break
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt == 4:
+                    raise
+                time.sleep(attempt * 2)
         if self.pause_seconds:
             time.sleep(self.pause_seconds)
 
@@ -274,6 +314,28 @@ def parse_product_options(page: str, select_id: str) -> dict[str, str]:
     return {" ".join(html.unescape(name).strip().split()): product_id for product_id, name in options}
 
 
+def parse_existing_movement_counts(page: str) -> dict[str, int]:
+    match = re.search(
+        r'<table[^>]*id="datatablesMovimentacoes"[^>]*>(.*?)</table>',
+        page,
+        re.DOTALL,
+    )
+    if not match:
+        return {}
+
+    rows = re.findall(r"<tr>(.*?)</tr>", match.group(1), re.DOTALL)
+    counts: dict[str, int] = {}
+    for row in rows:
+        cells = re.findall(r"<td>(.*?)</td>", row, re.DOTALL)
+        if len(cells) < 2:
+            continue
+        product_name = re.sub(r"<.*?>", "", cells[1])
+        normalized = " ".join(html.unescape(product_name).strip().split())
+        if normalized and normalized != "Nenhuma movimentacao registrada ainda.":
+            counts[normalized] = counts.get(normalized, 0) + 1
+    return counts
+
+
 def build_seed_products(seed: int) -> list[ProdutoSeed]:
     randomizer = random.Random(seed)
     products: list[ProdutoSeed] = []
@@ -284,8 +346,12 @@ def build_seed_products(seed: int) -> list[ProdutoSeed]:
             adjusted_price = (price * Decimal(str(randomizer.uniform(0.93, 1.12)))).quantize(
                 Decimal("0.01")
             )
-            adjusted_quantity = max(quantidade + randomizer.randint(-5, 18), 4)
-            quantidade_inicial = adjusted_quantity + randomizer.randint(8, 26)
+            if nome in LOW_STOCK_PRODUCTS:
+                adjusted_quantity = randomizer.randint(2, 5)
+                quantidade_inicial = adjusted_quantity + randomizer.randint(48, 72)
+            else:
+                adjusted_quantity = max(quantidade + randomizer.randint(-5, 18), 4)
+                quantidade_inicial = adjusted_quantity + randomizer.randint(18, 42)
             products.append(
                 ProdutoSeed(
                     nome=nome,
@@ -299,6 +365,30 @@ def build_seed_products(seed: int) -> list[ProdutoSeed]:
     return products
 
 
+def split_positive(total: int, parts: int, randomizer: random.Random) -> list[int]:
+    if total <= 0:
+        return []
+    parts = max(1, min(parts, total))
+    values = [1] * parts
+    remaining = total - parts
+    while remaining > 0:
+        index = randomizer.randrange(parts)
+        incremento = randomizer.randint(1, min(4, remaining))
+        values[index] += incremento
+        remaining -= incremento
+    randomizer.shuffle(values)
+    return values
+
+
+def build_saida_days(count: int, randomizer: random.Random) -> list[int]:
+    base_days = [0, 1, 2, 3, 5, 7, 10, 14, 21, 28, 35, 49, 63, 84, 112, 145, 178]
+    days = []
+    for index in range(count):
+        base_day = base_days[index % len(base_days)]
+        days.append(min(180, base_day + randomizer.randint(0, 3)))
+    return days
+
+
 def build_seed_movements(products: list[ProdutoSeed], seed: int) -> dict[str, list[MovimentacaoSeed]]:
     randomizer = random.Random(seed + 101)
     movimentacoes_por_produto: dict[str, list[MovimentacaoSeed]] = {}
@@ -306,71 +396,60 @@ def build_seed_movements(products: list[ProdutoSeed], seed: int) -> dict[str, li
     for item in products:
         saldo = item.quantidade_inicial
         movimentos: list[MovimentacaoSeed] = []
-        quantidade_saidas = randomizer.randint(1, 3)
 
-        for indice in range(quantidade_saidas):
-            restante = saldo - item.quantidade_final
-            movimentos_restantes = quantidade_saidas - indice
-            minimo_reserva = movimentos_restantes - 1
-            max_saida = max(1, restante - minimo_reserva) if restante > minimo_reserva else 1
-            saida = min(max_saida, max(1, restante // movimentos_restantes))
-            saida = max(1, saida + randomizer.randint(0, 2))
-            saida = min(saida, saldo - item.quantidade_final - minimo_reserva)
-            if saida <= 0:
-                continue
+        entradas_extra = [
+            (randomizer.randint(3, 9), randomizer.choice([24, 38, 57, 76, 96, 125])),
+            (randomizer.randint(2, 8), randomizer.choice([9, 16, 31, 68, 104, 151])),
+        ]
+        for quantidade_entrada, dias_atras in entradas_extra:
+            saldo += quantidade_entrada
+            movimentos.append(
+                MovimentacaoSeed(
+                    produto=item.nome,
+                    tipo="entrada",
+                    quantidade=quantidade_entrada,
+                    custo_unitario=item.preco,
+                    motivo=randomizer.choice(MOTIVOS_ENTRADA),
+                    fornecedor=randomizer.choice(FORNECEDORES),
+                    observacao=f"Reposicao registrada pelo script de seed {SEED_MARKER}",
+                    dias_atras=dias_atras,
+                )
+            )
 
+        total_saida = max(0, saldo - item.quantidade_final)
+        quantidade_saidas = min(total_saida, randomizer.randint(8, 14))
+        saidas = split_positive(total_saida, quantidade_saidas, randomizer)
+        dias_saidas = build_saida_days(len(saidas), randomizer)
+
+        for indice, (saida, dias_atras) in enumerate(zip(saidas, dias_saidas)):
             saldo -= saida
+            is_perda = indice == len(saidas) - 1 and item.nome in LOW_STOCK_PRODUCTS
             movimentos.append(
                 MovimentacaoSeed(
                     produto=item.nome,
                     tipo="saida",
                     quantidade=saida,
-                    custo_unitario=item.preco,
-                    motivo=randomizer.choice(MOTIVOS_SAIDA),
+                    custo_unitario="0.00" if is_perda else item.preco,
+                    motivo="Perda operacional" if is_perda else randomizer.choice(MOTIVOS_SAIDA),
                     fornecedor=randomizer.choice(FORNECEDORES),
-                    observacao=f"Movimentacao automatica de seed #{indice + 1}",
+                    observacao=f"Venda historica gerada pelo script de seed {SEED_MARKER}",
+                    dias_atras=dias_atras,
                 )
             )
 
-        entrada_extra = randomizer.randint(2, 8)
-        saldo += entrada_extra
-        movimentos.append(
-            MovimentacaoSeed(
-                produto=item.nome,
-                tipo="entrada",
-                quantidade=entrada_extra,
-                custo_unitario=item.preco,
-                motivo=randomizer.choice(MOTIVOS_ENTRADA),
-                fornecedor=randomizer.choice(FORNECEDORES),
-                observacao="Reposicao registrada pelo script de seed",
-            )
-        )
-
-        ajuste_final = saldo - item.quantidade_final
-        if ajuste_final > 0:
-            movimentos.append(
-                MovimentacaoSeed(
-                    produto=item.nome,
-                    tipo="saida",
-                    quantidade=ajuste_final,
-                    custo_unitario=item.preco,
-                    motivo="Ajuste para saldo final",
-                    fornecedor=randomizer.choice(FORNECEDORES),
-                    observacao="Ajuste final para manter o saldo planejado",
-                )
-            )
-
+        movimentos.sort(key=lambda movimento: movimento.dias_atras, reverse=True)
         movimentacoes_por_produto[item.nome] = movimentos
 
     return movimentacoes_por_produto
 
 
-def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
+def seed_database_http(base_url: str, dry_run: bool, seed: int) -> None:
     client = SeedClient(base_url)
     page = client.fetch_tables_page()
     csrf_token = parse_csrf_token(page)
     existing_categories = parse_category_options(page)
     existing_products = parse_existing_products(page)
+    existing_movement_counts = parse_existing_movement_counts(page)
 
     desired_categories = list(BASE_DATA.keys())
     desired_products = build_seed_products(seed)
@@ -380,14 +459,23 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
         name for name in desired_categories if normalize_label(name) not in existing_categories
     ]
     products_to_create = [item for item in desired_products if item.nome not in existing_products]
-    movements_to_create = sum(len(desired_movements[item.nome]) for item in products_to_create)
+    products_to_seed_movements = [
+        item
+        for item in desired_products
+        if item.nome in existing_products and existing_movement_counts.get(item.nome, 0) <= 1
+    ]
+    movement_products = products_to_create + products_to_seed_movements
+    movements_to_create = sum(len(desired_movements[item.nome]) for item in movement_products)
 
     print(f"Base URL: {base_url}")
     print(f"Categorias existentes: {len(existing_categories)}")
     print(f"Produtos existentes: {len(existing_products)}")
     print(f"Categorias a criar: {len(categories_to_create)}")
     print(f"Produtos a criar: {len(products_to_create)}")
+    print(f"Produtos existentes a completar historico: {len(products_to_seed_movements)}")
     print(f"Movimentacoes a criar: {movements_to_create}")
+    print("Aviso: o modo HTTP usa os formularios da aplicacao e nao consegue retroagir datas.")
+    print("Para alimentar historico semanal/mensal, execute com --mode orm no ambiente do Django.")
 
     if dry_run:
         print("Dry-run ativo. Nenhuma alteracao foi enviada.")
@@ -434,9 +522,18 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
     final_categories = parse_category_options(final_page)
     final_products = parse_existing_products(final_page)
     final_product_ids = parse_product_options(final_page, "produto-entrada")
+    final_movement_counts = parse_existing_movement_counts(final_page)
+    movement_products = [
+        item
+        for item in desired_products
+        if item.nome in final_products and (
+            item.nome in {product.nome for product in products_to_create}
+            or final_movement_counts.get(item.nome, 0) <= 1
+        )
+    ]
 
     created_movements = 0
-    for item in products_to_create:
+    for item in movement_products:
         product_id = final_product_ids.get(item.nome)
         if not product_id:
             raise RuntimeError(f"Produto ausente apos cadastro: {item.nome}")
@@ -467,14 +564,278 @@ def seed_database(base_url: str, dry_run: bool, seed: int) -> None:
     print(f"Produtos finais: {len(final_products)}")
 
 
+def setup_django():
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cafeteria.settings")
+
+    import django
+
+    django.setup()
+
+
+def seed_datetime(days_ago: int, index: int):
+    from django.utils import timezone
+
+    base = timezone.now() - timedelta(days=days_ago)
+    return base.replace(
+        hour=8 + (index % 10),
+        minute=(index * 7) % 60,
+        second=0,
+        microsecond=0,
+    )
+
+
+def create_historical_movement(produto, movimento: MovimentacaoSeed, usuario, index: int):
+    from estoque.models import Movimentacao
+
+    created = Movimentacao.objects.create(
+        produto=produto,
+        produto_nome=produto.nome,
+        categoria_nome=produto.categoria.nome,
+        unidade=produto.unidade,
+        quantidade=movimento.quantidade,
+        tipo=movimento.tipo,
+        usuario=usuario,
+        custo_unitario=Decimal(movimento.custo_unitario),
+        motivo=movimento.motivo,
+        fornecedor=movimento.fornecedor,
+        observacao=movimento.observacao,
+    )
+    Movimentacao.objects.filter(pk=created.pk).update(
+        data=seed_datetime(movimento.dias_atras, index)
+    )
+    return created
+
+
+def update_historical_movement(record, produto, movimento: MovimentacaoSeed, usuario, index: int):
+    from estoque.models import Movimentacao
+
+    Movimentacao.objects.filter(pk=record.pk).update(
+        produto=produto,
+        produto_nome=produto.nome,
+        categoria_nome=produto.categoria.nome,
+        unidade=produto.unidade,
+        quantidade=movimento.quantidade,
+        tipo=movimento.tipo,
+        usuario=usuario,
+        custo_unitario=Decimal(movimento.custo_unitario),
+        motivo=movimento.motivo,
+        fornecedor=movimento.fornecedor,
+        observacao=movimento.observacao,
+        data=seed_datetime(movimento.dias_atras, index),
+    )
+
+
+def seed_database_orm(dry_run: bool, seed: int) -> None:
+    setup_django()
+
+    from django.contrib.auth.models import User
+    from django.db import transaction
+    from django.utils import timezone
+    from estoque.models import Categoria, Movimentacao, Produto, normalizar_nome_categoria
+
+    desired_categories = list(BASE_DATA.keys())
+    desired_products = build_seed_products(seed)
+    desired_movements = build_seed_movements(desired_products, seed)
+    historical_cutoff = timezone.now() - timedelta(days=30)
+
+    existing_categories = {}
+    for category_name in desired_categories:
+        categoria = Categoria.objects.filter(
+            nome__iexact=normalizar_nome_categoria(category_name)
+        ).first()
+        if categoria:
+            existing_categories[category_name] = categoria
+    existing_products = {
+        produto.nome: produto
+        for produto in Produto.objects.select_related("categoria").filter(
+            nome__in=[item.nome for item in desired_products]
+        )
+    }
+
+    categories_to_create = [
+        name for name in desired_categories if name not in existing_categories
+    ]
+    products_to_create = [
+        item for item in desired_products if item.nome not in existing_products
+    ]
+    seed_stats = []
+    for item in desired_products:
+        seed_movements = Movimentacao.objects.filter(
+            produto_nome=item.nome,
+            observacao__contains=SEED_MARKER,
+        )
+        initial_movement_exists = Movimentacao.objects.filter(
+            produto_nome=item.nome,
+            tipo="entrada",
+            motivo="Estoque inicial",
+            fornecedor="Seed automatica",
+        ).exists()
+        historical_seed_movements = seed_movements.filter(data__lte=historical_cutoff)
+        missing_movements = max(0, len(desired_movements[item.nome]) - seed_movements.count())
+        seed_stats.append({
+            "item": item,
+            "existing_seed_movements": seed_movements.count(),
+            "historical_seed_movements": historical_seed_movements.count(),
+            "missing_initial_movement": 0 if initial_movement_exists else 1,
+            "missing_movements": missing_movements,
+        })
+
+    products_to_adjust_dates = [
+        stat["item"]
+        for stat in seed_stats
+        if stat["existing_seed_movements"] and stat["historical_seed_movements"] == 0
+    ]
+    products_to_complete_history = [
+        stat["item"]
+        for stat in seed_stats
+        if stat["missing_movements"] > 0
+    ]
+    movements_to_create = sum(
+        stat["missing_initial_movement"] + stat["missing_movements"]
+        for stat in seed_stats
+    )
+    movements_to_update = sum(
+        min(stat["existing_seed_movements"], len(desired_movements[stat["item"].nome]))
+        for stat in seed_stats
+        if stat["existing_seed_movements"]
+    )
+
+    print("Modo ORM: seed direto no banco configurado pelo Django.")
+    print(f"Categorias existentes do seed: {len(existing_categories)}")
+    print(f"Produtos existentes do seed: {len(existing_products)}")
+    print(f"Categorias a criar: {len(categories_to_create)}")
+    print(f"Produtos a criar: {len(products_to_create)}")
+    print(f"Produtos a redistribuir datas: {len(products_to_adjust_dates)}")
+    print(f"Produtos a completar historico: {len(products_to_complete_history)}")
+    print(f"Movimentacoes existentes a atualizar: {movements_to_update}")
+    print(f"Movimentacoes historicas a criar: {movements_to_create}")
+
+    if dry_run:
+        print("Dry-run ativo. Nenhuma alteracao foi enviada.")
+        return
+
+    with transaction.atomic():
+        usuario, _ = User.objects.get_or_create(username="seed_prod")
+        usuario.set_unusable_password()
+        usuario.save(update_fields=["password"])
+
+        categorias = {}
+        for category_name in desired_categories:
+            categoria = Categoria.objects.filter(
+                nome__iexact=normalizar_nome_categoria(category_name)
+            ).first()
+            if categoria is None:
+                categoria = Categoria.objects.create(nome=category_name)
+            categorias[category_name] = categoria
+
+        produtos = {}
+        for item in desired_products:
+            produto, created = Produto.objects.get_or_create(
+                nome=item.nome,
+                defaults={
+                    "categoria": categorias[item.categoria],
+                    "preco": Decimal(item.preco),
+                    "quantidade": item.quantidade_final,
+                    "unidade": item.unidade,
+                },
+            )
+            if not created:
+                produto.categoria = categorias[item.categoria]
+                produto.preco = Decimal(item.preco)
+                produto.unidade = item.unidade
+                produto.quantidade = item.quantidade_final
+                produto.save()
+            produtos[item.nome] = produto
+
+        created_movements = 0
+        updated_movements = 0
+        for item in desired_products:
+            produto = produtos[item.nome]
+            entrada_inicial = MovimentacaoSeed(
+                produto=item.nome,
+                tipo="entrada",
+                quantidade=item.quantidade_inicial,
+                custo_unitario=item.preco,
+                motivo="Estoque inicial",
+                fornecedor="Seed automatica",
+                observacao=f"Cadastro inicial historico gerado pelo script de seed {SEED_MARKER}",
+                dias_atras=210,
+            )
+
+            initial_movement = Movimentacao.objects.filter(
+                produto_nome=item.nome,
+                tipo="entrada",
+                motivo="Estoque inicial",
+                fornecedor="Seed automatica",
+            ).order_by("id").first()
+            if initial_movement:
+                update_historical_movement(
+                    initial_movement,
+                    produto,
+                    entrada_inicial,
+                    usuario,
+                    created_movements + updated_movements,
+                )
+                updated_movements += 1
+            else:
+                create_historical_movement(
+                    produto,
+                    entrada_inicial,
+                    usuario,
+                    created_movements + updated_movements,
+                )
+                created_movements += 1
+
+            existing_seed_movements = list(Movimentacao.objects.filter(
+                produto_nome=item.nome,
+                observacao__contains=SEED_MARKER,
+            ).exclude(
+                motivo="Estoque inicial",
+            ).order_by("id"))
+
+            for index, movimento in enumerate(desired_movements[item.nome]):
+                global_index = created_movements + updated_movements
+                if index < len(existing_seed_movements):
+                    update_historical_movement(
+                        existing_seed_movements[index],
+                        produto,
+                        movimento,
+                        usuario,
+                        global_index,
+                    )
+                    updated_movements += 1
+                else:
+                    create_historical_movement(produto, movimento, usuario, global_index)
+                    created_movements += 1
+
+            produto.quantidade = item.quantidade_final
+            produto.save(update_fields=["quantidade"])
+
+    print(f"Categorias criadas: {len(categories_to_create)}")
+    print(f"Produtos criados: {len(products_to_create)}")
+    print(f"Movimentacoes historicas atualizadas: {updated_movements}")
+    print(f"Movimentacoes historicas criadas: {created_movements}")
+    print(f"Categorias finais: {Categoria.objects.count()}")
+    print(f"Produtos finais: {Produto.objects.count()}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Popula a aplicacao de controle de estoque via HTTP, usando os formularios reais da pagina."
+        description="Popula a aplicacao de controle de estoque com dados realistas de cafeteria."
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["orm", "http"],
+        default="orm",
+        help="Modo de execucao. Use orm para criar historico com datas reais; http para usar formularios.",
     )
     parser.add_argument(
         "--base-url",
         default="https://controle-de-estoque-univesp.up.railway.app",
-        help="URL base da aplicacao.",
+        help="URL base da aplicacao, usada apenas no modo http.",
     )
     parser.add_argument(
         "--seed",
@@ -490,7 +851,10 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        seed_database(args.base_url, args.dry_run, args.seed)
+        if args.mode == "orm":
+            seed_database_orm(args.dry_run, args.seed)
+        else:
+            seed_database_http(args.base_url, args.dry_run, args.seed)
     except Exception as exc:
         print(f"Erro: {exc}", file=sys.stderr)
         return 1
