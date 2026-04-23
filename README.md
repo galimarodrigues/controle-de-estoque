@@ -6,7 +6,7 @@ Este projeto foi desenvolvido em equipe como parte do Projeto Integrador da UNIV
 
 A aplicação suporta execução local utilizando PostgreSQL e também pode ser implantada em produção através da plataforma Railway.
 https://controle-de-estoque-univesp.up.railway.app/
-
+ 
 ## Tecnologias
 - Python 3.10+
 - Django
