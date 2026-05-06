@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1,
+    "nome": "Coxinha",
+    "preco": 5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 1
+  },
+  {
+    "id": 2,
+    "nome": "Bolinha de Queijo",
+    "preco": 4.5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 1
+  },
+  {
+    "id": 3,
+    "nome": "Quibe",
+    "preco": 5.5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 1
+  },
+  {
+    "id": 4,
+    "nome": "Croquete",
+    "preco": 4,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 1
+  },
+  {
+    "id": 5,
+    "nome": "Pão de Queijo",
+    "preco": 3,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 2
+  },
+  {
+    "id": 6,
+    "nome": "Esfirra de Carne",
+    "preco": 6,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 2
+  },
+  {
+    "id": 7,
+    "nome": "Esfirra de Calabresa",
+    "preco": 6.5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 2
+  },
+  {
+    "id": 8,
+    "nome": "Misto Quente",
+    "preco": 7,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 2
+  },
+  {
+    "id": 9,
+    "nome": "Café Espresso",
+    "preco": 4,
+    "quantidade": 5,
+    "unidade": "un",
+    "categoria_id": 3
+  },
+  {
+    "id": 10,
+    "nome": "Cappuccino",
+    "preco": 5.5,
+    "quantidade": 5,
+    "unidade": "un",
+    "categoria_id": 3
+  },
+  {
+    "id": 11,
+    "nome": "Pingado",
+    "preco": 3.5,
+    "quantidade": 5,
+    "unidade": "un",
+    "categoria_id": 3
+  },
+  {
+    "id": 12,
+    "nome": "Chá Matte",
+    "preco": 4.5,
+    "quantidade": 5,
+    "unidade": "un",
+    "categoria_id": 3
+  },
+  {
+    "id": 13,
+    "nome": "Água",
+    "preco": 2.5,
+    "quantidade": 20,
+    "unidade": "garrafa",
+    "categoria_id": 4
+  },
+  {
+    "id": 14,
+    "nome": "Coca-Cola",
+    "preco": 5,
+    "quantidade": 20,
+    "unidade": "lata",
+    "categoria_id": 4
+  },
+  {
+    "id": 15,
+    "nome": "Guaraná",
+    "preco": 4.5,
+    "quantidade": 20,
+    "unidade": "lata",
+    "categoria_id": 4
+  },
+  {
+    "id": 16,
+    "nome": "Sprite",
+    "preco": 4.5,
+    "quantidade": 20,
+    "unidade": "lata",
+    "categoria_id": 4
+  },
+  {
+    "id": 17,
+    "nome": "Bombom",
+    "preco": 2,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 5
+  },
+  {
+    "id": 18,
+    "nome": "Chiclete",
+    "preco": 1.5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 5
+  },
+  {
+    "id": 19,
+    "nome": "Mentos",
+    "preco": 2.5,
+    "quantidade": 10,
+    "unidade": "un",
+    "categoria_id": 5
+  }
+]

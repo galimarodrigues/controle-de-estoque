@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "nome": "Salgados Fritos"
+  },
+  {
+    "id": 2,
+    "nome": "Salgados Assados"
+  },
+  {
+    "id": 3,
+    "nome": "Bebidas Quentes"
+  },
+  {
+    "id": 4,
+    "nome": "Bebidas Geladas"
+  },
+  {
+    "id": 5,
+    "nome": "Doces"
+  }
+]
