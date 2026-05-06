@@ -11,7 +11,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from http.cookiejar import CookieJar
 from pathlib import Path
@@ -181,6 +181,15 @@ def normalize_unidade(unidade: str) -> str:
 
 def parse_seed_datetime(value: str) -> datetime:
     return datetime.strptime(value, DEFAULT_DATE_FORMAT)
+
+
+def parse_seed_datetime_aware(value: str):
+    from django.utils import timezone
+
+    parsed = parse_seed_datetime(value)
+    if timezone.is_naive(parsed):
+        return timezone.make_aware(parsed, timezone.get_current_timezone())
+    return parsed
 
 
 def marker_observacao(observacao: str, data_original: str) -> str:
@@ -402,7 +411,7 @@ def create_historical_movement(produto, movimento: MovimentacaoSeed, usuario):
         observacao=movimento.observacao,
     )
     Movimentacao.objects.filter(pk=created.pk).update(
-        data=parse_seed_datetime(movimento.data_original)
+        data=parse_seed_datetime_aware(movimento.data_original)
     )
     return created
 
@@ -422,7 +431,7 @@ def update_historical_movement(record, produto, movimento: MovimentacaoSeed, usu
         motivo=movimento.motivo,
         fornecedor=movimento.fornecedor,
         observacao=movimento.observacao,
-        data=parse_seed_datetime(movimento.data_original),
+        data=parse_seed_datetime_aware(movimento.data_original),
     )
 
 
