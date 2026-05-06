@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
 import dj_database_url
 
 # Load variables from .env when available (local/dev convenience)
@@ -22,7 +23,22 @@ except Exception:
     pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def resolve_sqlite_db_path() -> str:
+    explicit_sqlite_path = os.environ.get('SQLITE_PATH')
+    if explicit_sqlite_path:
+        sqlite_path = Path(explicit_sqlite_path)
+    else:
+        railway_volume_mount_path = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH')
+        if railway_volume_mount_path:
+            sqlite_path = Path(railway_volume_mount_path) / 'db.sqlite3'
+        else:
+            sqlite_path = PROJECT_ROOT / 'db.sqlite3'
+
+    sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+    return str(sqlite_path)
 
 
 # Quick-start development settings - unsuitable for production
@@ -98,7 +114,7 @@ if _db_url and not _force_sqlite:
 else:
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': resolve_sqlite_db_path(),
     }
 
 
