@@ -1,13 +1,18 @@
+import json
+import subprocess
 from datetime import timedelta
 
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Sum, Count
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
 from .forms import CategoriaForm, EditCategoriaForm, EditProdutoForm, MovimentacaoForm, ProdutoForm
 from .models import Categoria, Movimentacao, Produto, UNIDADES_VALIDAS
+from .seed_runner import HARDCODED_SEED_API_KEY, get_supported_seed_names, run_seed
 from .services import criar_produto_com_estoque_inicial, registrar_movimentacao
 
 
@@ -338,3 +343,92 @@ def editar_produto(request):
                 erro for erros in form.errors.values() for erro in erros
             ))
     return redirect('tables')
+
+
+def _parse_seed_request_payload(request):
+    if request.content_type and 'application/json' in request.content_type:
+        try:
+            return json.loads(request.body.decode('utf-8') or '{}')
+        except json.JSONDecodeError as exc:
+            raise ValueError(f'JSON invalido: {exc.msg}')
+    return {
+        'seed_name': request.POST.get('seed_name'),
+        'mode': request.POST.get('mode'),
+        'dry_run': request.POST.get('dry_run'),
+        'force_sqlite': request.POST.get('force_sqlite'),
+    }
+
+
+def _as_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+@csrf_exempt
+def run_seed_api(request):
+    if request.method != 'POST':
+        return JsonResponse(
+            {
+                'detail': 'Metodo nao permitido. Use POST.',
+                'supported_seeds': get_supported_seed_names(),
+            },
+            status=405,
+        )
+
+    provided_key = request.headers.get('X-API-Key') or request.POST.get('api_key')
+    if provided_key != HARDCODED_SEED_API_KEY:
+        return JsonResponse({'detail': 'API key invalida.'}, status=403)
+
+    try:
+        payload = _parse_seed_request_payload(request)
+    except ValueError as exc:
+        return JsonResponse({'detail': str(exc)}, status=400)
+
+    seed_name = payload.get('seed_name') or 'seed_prod_v2'
+    mode = payload.get('mode') or 'orm'
+    dry_run = _as_bool(payload.get('dry_run'))
+    force_sqlite = _as_bool(payload.get('force_sqlite'), default=(mode == 'orm'))
+
+    try:
+        completed = run_seed(
+            seed_name=seed_name,
+            mode=mode,
+            dry_run=dry_run,
+            force_sqlite=force_sqlite,
+        )
+    except ValueError as exc:
+        return JsonResponse(
+            {
+                'detail': str(exc),
+                'supported_seeds': get_supported_seed_names(),
+            },
+            status=400,
+        )
+    except subprocess.TimeoutExpired:
+        return JsonResponse(
+            {
+                'detail': 'A execucao do seed excedeu o tempo limite.',
+                'seed_name': seed_name,
+                'mode': mode,
+            },
+            status=504,
+        )
+
+    status_code = 200 if completed.returncode == 0 else 500
+    return JsonResponse(
+        {
+            'ok': completed.returncode == 0,
+            'seed_name': seed_name,
+            'mode': mode,
+            'dry_run': dry_run,
+            'force_sqlite': force_sqlite,
+            'returncode': completed.returncode,
+            'stdout': completed.stdout,
+            'stderr': completed.stderr,
+            'supported_seeds': get_supported_seed_names(),
+        },
+        status=status_code,
+    )

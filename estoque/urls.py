@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('tabelas/', views.tables, name='tables'),
     path('graficos/', views.charts, name='charts'),
+    path('api/run-seed/', views.run_seed_api, name='run_seed_api'),
     path('add_categoria/', views.add_categoria, name='add_categoria'),
     path('add_produto/', views.add_produto, name='add_produto'),
     path('entrada_produto/', views.entrada_produto, name='entrada_produto'),

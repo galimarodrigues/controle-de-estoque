@@ -90,8 +90,9 @@ WSGI_APPLICATION = 'cafeteria.wsgi.application'
 # Database
 # Prefer DATABASE_URL if present (e.g., provided by Railway); otherwise fallback to local SQLite for dev
 DATABASES = {}
+_force_sqlite = os.environ.get('FORCE_SQLITE', '0').lower() in ('1', 'true', 'yes', 'on')
 _db_url = os.environ.get('DATABASE_URL')
-if _db_url:
+if _db_url and not _force_sqlite:
     # Use SSL in production (DEBUG=False) which sets sslmode=require
     DATABASES['default'] = dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=not DEBUG)
 else:
