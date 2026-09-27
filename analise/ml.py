@@ -1,8 +1,17 @@
+import numpy as np
 import pandas as pd
 
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
+from sklearn.metrics import (
+    accuracy_score,
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+)
 from sklearn.preprocessing import OneHotEncoder
 
 
@@ -152,5 +161,149 @@ def treinar_modelo(df_ml):
         "mae": mae,
         "rmse": rmse,
         "r2": r2,
+        "data_corte": data_corte,
+    }
+
+def treinar_modelo_dois_estagios(df_ml):
+    """
+    Modelo em duas etapas:
+
+    1. Classifica se haverá demanda (0 ou 1).
+    2. Para os casos com demanda, estima a quantidade.
+
+    A previsão final é zero quando o classificador
+    identifica ausência de demanda.
+    """
+
+    (
+        X_treino,
+        X_teste,
+        y_treino,
+        y_teste,
+        treino,
+        teste,
+        data_corte,
+    ) = preparar_dados_treinamento(df_ml)
+
+    # -------------------------------------------------
+    # ETAPA 1 - CLASSIFICAÇÃO
+    # -------------------------------------------------
+
+    y_treino_classe = (y_treino > 0).astype(int)
+
+    preprocessor_clf, _ = criar_modelo()
+
+    classificador = RandomForestClassifier(
+        n_estimators=300,
+        random_state=42,
+        n_jobs=-1,
+        min_samples_leaf=2,
+        class_weight="balanced",
+    )
+
+    X_treino_clf = preprocessor_clf.fit_transform(X_treino)
+    X_teste_clf = preprocessor_clf.transform(X_teste)
+
+    classificador.fit(
+        X_treino_clf,
+        y_treino_classe,
+    )
+
+    previsao_classe = classificador.predict(
+        X_teste_clf
+    )
+
+    # -------------------------------------------------
+    # ETAPA 2 - REGRESSÃO
+    # -------------------------------------------------
+
+    # O regressor aprende somente com os dias
+    # em que realmente houve demanda.
+    filtro_positivos = y_treino > 0
+
+    X_treino_pos = X_treino.loc[filtro_positivos]
+    y_treino_pos = y_treino.loc[filtro_positivos]
+
+    preprocessor_reg, regressor = criar_modelo()
+
+    X_treino_reg = preprocessor_reg.fit_transform(
+        X_treino_pos
+    )
+
+    X_teste_reg = preprocessor_reg.transform(
+        X_teste
+    )
+
+    regressor.fit(
+        X_treino_reg,
+        y_treino_pos,
+    )
+
+    previsao_quantidade = regressor.predict(
+        X_teste_reg
+    )
+
+    # -------------------------------------------------
+    # PREVISÃO FINAL
+    # -------------------------------------------------
+
+    # Quando o classificador prevê ausência de demanda,
+    # a previsão final passa a ser exatamente zero.
+    previsoes = np.where(
+        previsao_classe == 1,
+        previsao_quantidade,
+        0,
+    )
+
+    # Evita eventual previsão negativa.
+    previsoes = np.maximum(previsoes, 0)
+
+    # -------------------------------------------------
+    # MÉTRICAS
+    # -------------------------------------------------
+
+    mae = mean_absolute_error(
+        y_teste,
+        previsoes,
+    )
+
+    rmse = mean_squared_error(
+        y_teste,
+        previsoes,
+    ) ** 0.5
+
+    r2 = r2_score(
+        y_teste,
+        previsoes,
+    )
+
+    acuracia_classificacao = accuracy_score(
+        (y_teste > 0).astype(int),
+        previsao_classe,
+    )
+
+    resultados = teste[
+        [
+            "data_dia",
+            "produto_nome",
+            "quantidade",
+        ]
+    ].copy()
+
+    resultados["previsao"] = previsoes
+    resultados["previsao_demanda"] = previsao_classe
+
+    return {
+        "preprocessor_clf": preprocessor_clf,
+        "classificador": classificador,
+        "preprocessor_reg": preprocessor_reg,
+        "regressor": regressor,
+        "treino": treino,
+        "teste": teste,
+        "resultados": resultados,
+        "mae": mae,
+        "rmse": rmse,
+        "r2": r2,
+        "acuracia_classificacao": acuracia_classificacao,
         "data_corte": data_corte,
     }
