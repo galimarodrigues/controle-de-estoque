@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 ### Executar os testes automatizados
 
-O projeto usa `pytest` com `pytest-django`. A suíte possui 27 testes e não gera
+O projeto usa `pytest` com `pytest-django`. A suíte possui 28 testes e não gera
 relatório nem meta de cobertura. Os testes usam SQLite isolado e não acessam o
 banco PostgreSQL local ou de produção.
 
@@ -73,7 +73,7 @@ set FORCE_SQLITE=1 && py -m pytest
 Resultado esperado:
 
 ```text
-27 passed
+28 passed
 ```
 
 #### O que é validado
@@ -137,6 +137,28 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 Acesse: http://127.0.0.1:8000/
+
+### Carga inicial de dados
+
+O único script de carga é `scripts/seed_prod_v2.py`. Ele lê as categorias,
+produtos e movimentações históricas de `scripts/seed/` e pode executar tanto
+diretamente no banco (`orm`) quanto pela aplicação web (`http`).
+
+Antes de gravar dados, confira a operação:
+
+```bash
+python3 scripts/seed_prod_v2.py --mode orm --dry-run
+```
+
+Para executar a carga no banco configurado pelas variáveis de ambiente:
+
+```bash
+python3 scripts/seed_prod_v2.py --mode orm
+```
+
+O script é idempotente para os dados que ele próprio cria: execuções posteriores
+atualizam os produtos e movimentações identificados pelo marcador do seed. Ele
+não remove dados criados manualmente ou por versões antigas do seed.
 
 ---
 

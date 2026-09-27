@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 
 from .models import Movimentacao, Produto
-from .seed_runner import HARDCODED_SEED_API_KEY
+from .seed_runner import HARDCODED_SEED_API_KEY, get_supported_seed_names
 
 
 @pytest.mark.django_db
@@ -63,6 +63,10 @@ def test_seed_api_rejeita_metodo_e_chave_invalidos(client):
 
     assert method_response.status_code == 405
     assert key_response.status_code == 403
+
+
+def test_executor_expoe_apenas_o_seed_padrao():
+    assert get_supported_seed_names() == ['seed_prod_v2']
 
 
 def test_seed_api_rejeita_json_invalido(client):

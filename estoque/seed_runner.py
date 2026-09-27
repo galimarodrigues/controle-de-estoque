@@ -6,14 +6,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 HARDCODED_SEED_API_KEY = "seed-api-key-estoque-2026"
+DEFAULT_SEED_NAME = "seed_prod_v2"
 SUPPORTED_SEEDS = {
-    "seed_prod": {
-        "script": "scripts/seed_prod.py",
-        "supports_http": True,
-    },
-    "seed_prod_v2": {
+    DEFAULT_SEED_NAME: {
         "script": "scripts/seed_prod_v2.py",
-        "supports_http": True,
     },
 }
 
@@ -30,9 +26,6 @@ def run_seed(*, seed_name: str, mode: str = "orm", dry_run: bool = False, force_
 
     if mode not in {"orm", "http"}:
         raise ValueError("Modo invalido. Use 'orm' ou 'http'.")
-
-    if mode == "http" and not SUPPORTED_SEEDS[seed_name]["supports_http"]:
-        raise ValueError(f"O seed {seed_name} nao suporta o modo http.")
 
     command = [
         sys.executable,
