@@ -52,6 +52,53 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Executar os testes automatizados
+
+O projeto usa `pytest` com `pytest-django`. A suíte possui 27 testes e não gera
+relatório nem meta de cobertura. Os testes usam SQLite isolado e não acessam o
+banco PostgreSQL local ou de produção.
+
+No Linux/macOS, com o ambiente virtual ativado:
+
+```bash
+FORCE_SQLITE=1 python3 -m pytest
+```
+
+No Windows (Prompt de Comando):
+
+```bat
+set FORCE_SQLITE=1 && py -m pytest
+```
+
+Resultado esperado:
+
+```text
+27 passed
+```
+
+#### O que é validado
+
+- **Testes unitários:** validação e normalização de categorias, produtos e
+  formulários; regras da camada de serviço para entradas, saídas, saldo
+  insuficiente e histórico de movimentações.
+- **Testes de integração:** fluxos web de cadastro, edição e remoção; dashboard
+  e consultas por período, categoria e produto.
+- **Testes de API:** endpoint de execução de seed, incluindo chave inválida,
+  JSON inválido, sucesso e timeout. A execução externa do seed é simulada, logo
+  nenhum seed real é executado durante os testes.
+
+Não há testes E2E de navegador nesta versão. A configuração de testes está em
+`pytest.ini` e usa `cafeteria.settings_test`, que desabilita apenas recursos de
+estáticos necessários no deploy para que os templates possam ser testados
+localmente.
+
+#### Execução contínua
+
+O [workflow de testes](.github/workflows/testes.yml) do GitHub Actions roda em
+todo push e pull request para `main`. Ele instala as dependências, executa a
+verificação do Django, confirma que não há migrações pendentes e roda a mesma
+suíte `pytest` em SQLite isolado.
+
 4) Instalar e iniciar o PostgreSQL
 - Baixe e instale: https://www.postgresql.org/download/
 - Guarde a senha do usuário `postgres` definida na instalação (porta padrão: 5432).
