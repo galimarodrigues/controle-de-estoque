@@ -1,5 +1,3 @@
-import json
-
 from django.shortcuts import render
 
 from analise.clustering import (
@@ -165,10 +163,7 @@ def dashboard_analise(request):
             ) * 100,
             2,
         ),
-        "pontos_clusters": json.dumps(
-            pontos_clusters,
-            ensure_ascii=False,
-        ),
+        "pontos_clusters": pontos_clusters,
         "produtos": produtos,
     }
 

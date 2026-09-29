@@ -1,6 +1,47 @@
 /* Estilos específicos da tela de Análise de Dados. */
 
+.analise-page {
+    padding-bottom: 8px;
+}
+
+.analise-metric-card {
+    min-height: 136px;
+}
+
+.analise-metric-card .card-body h2 {
+    font-size: 1.8rem;
+}
+
+.analise-cluster-summary {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.8rem 1rem;
+}
+
 .cluster-chart-container {
     position: relative;
-    height: 430px;
+    height: 320px;
+    width: 100%;
+}
+
+#clusterChart {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.analise-page .table th,
+.analise-page .table td {
+    vertical-align: middle;
+}
+
+.analise-page .table th {
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .cluster-chart-container {
+        height: 280px;
+    }
 }
