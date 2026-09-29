@@ -1,10 +1,328 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Análise de Produtos</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+
+        .page-container {
+            padding: 30px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .metric-label {
+            color: #666;
+        }
+
+        .cluster-badge {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+        }
+    </style>
 </head>
+
 <body>
+
+<div class="container-fluid page-container">
+
+    <div class="mb-4">
+        <h1>Análise de Comportamento dos Produtos</h1>
+
+        <p class="text-muted">
+            Agrupamento de produtos utilizando aprendizagem
+            não supervisionada com K-Means.
+        </p>
+    </div>
+
+    <!-- MÉTRICAS -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card p-4">
+                <div class="metric-label">
+                    Produtos analisados
+                </div>
+
+                <div class="metric-value">
+                    {{ total_produtos }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-4">
+                <div class="metric-label">
+                    Clusters
+                </div>
+
+                <div class="metric-value">
+                    {{ n_clusters }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-4">
+                <div class="metric-label">
+                    Silhouette Score
+                </div>
+
+                <div class="metric-value">
+                    {{ silhouette_score }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-4">
+                <div class="metric-label">
+                    Variância representada pelo PCA
+                </div>
+
+                <div class="metric-value">
+                    {{ variancia_pca }}%
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GRÁFICO -->
+
+    <div class="card p-4 mb-4">
+
+        <h4 class="mb-3">
+            Distribuição dos produtos por cluster
+        </h4>
+
+        <p class="text-muted">
+            Representação dos produtos em duas dimensões
+            obtidas por PCA.
+        </p>
+
+        <div class="chart-container">
+            <canvas id="clusterChart"></canvas>
+        </div>
+
+        <div class="mt-3 text-muted small">
+            PCA 1: {{ pca_1_percentual }}%
+            &nbsp; | &nbsp;
+            PCA 2: {{ pca_2_percentual }}%
+        </div>
+
+    </div>
+
+    <!-- PRODUTOS -->
+
+    <div class="card p-4">
+
+        <h4 class="mb-3">
+            Produtos agrupados
+        </h4>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Cluster</th>
+                        <th>Demanda média</th>
+                        <th>Demanda total</th>
+                        <th>Dias com demanda</th>
+                        <th>Dias sem demanda</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for produto in produtos %}
+
+                    <tr>
+
+                        <td>
+                            {{ produto.nome }}
+                        </td>
+
+                        <td>
+
+                            <span class="cluster-badge bg-light">
+
+                                Cluster {{ produto.cluster }}
+
+                                — {{ produto.cluster_nome }}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+                            {{ produto.demanda_media }}
+                        </td>
+
+                        <td>
+                            {{ produto.demanda_total }}
+                        </td>
+
+                        <td>
+                            {{ produto.dias_com_demanda }}
+                        </td>
+
+                        <td>
+                            {{ produto.percentual_dias_zero }}%
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const pontosClusters =
+        JSON.parse(
+            '{{ pontos_clusters|escapejs }}'
+        );
+
+    const datasets = [];
+
+    pontosClusters.forEach(
+        (grupo) => {
+
+            datasets.push({
+
+                label:
+                    'Cluster ' +
+                    grupo.cluster +
+                    ' — ' +
+                    grupo.nome,
+
+                data:
+                    grupo.pontos,
+
+                pointRadius: 7,
+
+                pointHoverRadius: 10,
+
+            });
+
+        }
+    );
+
+
+    const ctx =
+        document
+            .getElementById('clusterChart')
+            .getContext('2d');
+
+
+    new Chart(ctx, {
+
+        type: 'scatter',
+
+        data: {
+            datasets: datasets
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            const ponto =
+                                context.raw;
+
+                            return (
+                                ponto.produto +
+                                ' | Cluster ' +
+                                context.dataset.label
+                            );
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+            scales: {
+
+                x: {
+
+                    title: {
+                        display: true,
+                        text: 'PCA 1'
+                    }
+
+                },
+
+                y: {
+
+                    title: {
+                        display: true,
+                        text: 'PCA 2'
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+</script>
 
 </body>
 </html>
