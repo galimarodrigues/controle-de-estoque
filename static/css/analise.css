@@ -1,0 +1,6 @@
+/* Estilos específicos da tela de Análise de Dados. */
+
+.cluster-chart-container {
+    position: relative;
+    height: 430px;
+}

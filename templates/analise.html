@@ -1,328 +1,258 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Análise de comportamento dos produtos com Machine Learning" />
+        <meta name="author" content="" />
+        <title>Análise de Dados</title>
+        {% load static %}
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <link href="{% static 'css/analise.css' %}" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand ps-3" href="/">Controle de Estoque</a>
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        </nav>
 
-    <title>Análise de Produtos</title>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Principal</div>
+                            <a tabindex="0" class="nav-link" href="/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Painel de Controle
+                            </a>
+                            <a tabindex="0" class="nav-link" href="/estoque/tabelas/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Registro de Movimentacao
+                            </a>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+                            <div class="sb-sidenav-menu-heading">Consultas</div>
+                            <a class="nav-link" tabindex="0" href="/consulta/periodo/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por periodo
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/categoria/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por categoria
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/produto/">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                Consulta por produto
+                            </a>
+                            <a class="nav-link" tabindex="0" href="/consulta/historico/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
+                                Histórico de Vendas
+                            </a>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                            <div class="sb-sidenav-menu-heading">Complementos</div>
+                            <a tabindex="0" class="nav-link" href="/estoque/graficos/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Indicadores de Desempenho
+                            </a>
+                            <a tabindex="0" class="nav-link active" aria-current="page" href="/analise/">
+                                <div class="sb-nav-link-icon"><i class="fas fa-brain"></i></div>
+                                Análise de Dados
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
 
-    <style>
-        body {
-            background-color: #f4f4f4;
-        }
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Análise de Dados</h1>
 
-        .page-container {
-            padding: 30px;
-        }
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
+                            <li class="breadcrumb-item active">Análise de Dados</li>
+                        </ol>
 
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-boxes me-1"></i>
+                                        Produtos analisados
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ total_produtos }}</h2>
+                                        <small class="text-muted">produtos avaliados pelo modelo</small>
+                                    </div>
+                                </div>
+                            </div>
 
-        .metric-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-project-diagram me-1"></i>
+                                        Clusters
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ n_clusters }}</h2>
+                                        <small class="text-muted">grupos identificados pelo K-Means</small>
+                                    </div>
+                                </div>
+                            </div>
 
-        .metric-label {
-            color: #666;
-        }
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-chart-line me-1"></i>
+                                        Silhouette Score
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ silhouette_score }}</h2>
+                                        <small class="text-muted">medida de separação dos grupos</small>
+                                    </div>
+                                </div>
+                            </div>
 
-        .cluster-badge {
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
+                            <div class="col-md-3">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-chart-pie me-1"></i>
+                                        PCA
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h2 class="mb-0">{{ variancia_pca }}%</h2>
+                                        <small class="text-muted">variância representada no gráfico</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        .chart-container {
-            position: relative;
-            height: 500px;
-        }
-    </style>
-</head>
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-8">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-project-diagram me-1"></i>
+                                        Agrupamento dos Produtos
+                                    </div>
+                                    <div class="card-body">
+                                        <p tabindex="0" class="text-muted mb-3">
+                                            Cada ponto representa um produto. Produtos próximos no gráfico possuem
+                                            características históricas de demanda semelhantes. O PCA é utilizado
+                                            exclusivamente para representar os dados em duas dimensões.
+                                        </p>
+                                        <div class="cluster-chart-container">
+                                            <canvas tabindex="0" id="clusterChart"></canvas>
+                                        </div>
+                                        <p tabindex="0" class="text-muted small mt-3 mb-0">
+                                            PCA 1: {{ pca_1_percentual }}% &nbsp;|&nbsp;
+                                            PCA 2: {{ pca_2_percentual }}%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-<body>
+                            <div class="col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-header" tabindex="0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Interpretação dos grupos
+                                    </div>
+                                    <div class="card-body">
+                                        {% for grupo in pontos_clusters %}
+                                        <div class="bg-light rounded-3 py-3 px-3 mb-3">
+                                            <div class="fw-semibold">Cluster {{ grupo.cluster }}</div>
+                                            <div class="text-muted mt-1">{{ grupo.nome }}</div>
+                                            <div class="small text-muted mt-2">
+                                                {{ grupo.pontos|length }} produto(s)
+                                            </div>
+                                        </div>
+                                        {% endfor %}
 
-<div class="container-fluid page-container">
+                                        <div class="bg-light rounded-3 py-3 px-3">
+                                            <div class="fw-semibold">Como interpretar?</div>
+                                            <p tabindex="0" class="text-muted small mb-0 mt-2">
+                                                O K-Means agrupa produtos com comportamentos semelhantes de demanda.
+                                                Os nomes dos grupos são interpretações feitas a partir das características
+                                                médias observadas em cada cluster.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="mb-4">
-        <h1>Análise de Comportamento dos Produtos</h1>
+                        <div class="card mb-4">
+                            <div class="card-header" tabindex="0">
+                                <i class="fas fa-table me-1"></i>
+                                Produtos agrupados pelo K-Means
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped" tabindex="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Produto</th>
+                                                <th>Cluster</th>
+                                                <th>Demanda média</th>
+                                                <th>Demanda total</th>
+                                                <th>Dias com demanda</th>
+                                                <th>Dias sem demanda</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for produto in produtos %}
+                                            <tr>
+                                                <td>{{ produto.nome }}</td>
+                                                <td>Cluster {{ produto.cluster }} — {{ produto.cluster_nome }}</td>
+                                                <td>{{ produto.demanda_media }}</td>
+                                                <td>{{ produto.demanda_total|floatformat:0 }}</td>
+                                                <td>{{ produto.dias_com_demanda }}</td>
+                                                <td>{{ produto.percentual_dias_zero }}%</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6">Nenhum produto disponível para análise.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <p class="text-muted">
-            Agrupamento de produtos utilizando aprendizagem
-            não supervisionada com K-Means.
-        </p>
-    </div>
+                    <div vw class="enabled">
+                        <div vw-access-button class="active"></div>
+                        <div vw-plugin-wrapper>
+                            <div class="vw-plugin-top-wrapper"></div>
+                        </div>
+                    </div>
 
-    <!-- MÉTRICAS -->
+                    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+                </main>
 
-    <div class="row g-4 mb-4">
-
-        <div class="col-md-3">
-            <div class="card p-4">
-                <div class="metric-label">
-                    Produtos analisados
-                </div>
-
-                <div class="metric-value">
-                    {{ total_produtos }}
-                </div>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; 2025</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card p-4">
-                <div class="metric-label">
-                    Clusters
-                </div>
-
-                <div class="metric-value">
-                    {{ n_clusters }}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card p-4">
-                <div class="metric-label">
-                    Silhouette Score
-                </div>
-
-                <div class="metric-value">
-                    {{ silhouette_score }}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card p-4">
-                <div class="metric-label">
-                    Variância representada pelo PCA
-                </div>
-
-                <div class="metric-value">
-                    {{ variancia_pca }}%
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- GRÁFICO -->
-
-    <div class="card p-4 mb-4">
-
-        <h4 class="mb-3">
-            Distribuição dos produtos por cluster
-        </h4>
-
-        <p class="text-muted">
-            Representação dos produtos em duas dimensões
-            obtidas por PCA.
-        </p>
-
-        <div class="chart-container">
-            <canvas id="clusterChart"></canvas>
-        </div>
-
-        <div class="mt-3 text-muted small">
-            PCA 1: {{ pca_1_percentual }}%
-            &nbsp; | &nbsp;
-            PCA 2: {{ pca_2_percentual }}%
-        </div>
-
-    </div>
-
-    <!-- PRODUTOS -->
-
-    <div class="card p-4">
-
-        <h4 class="mb-3">
-            Produtos agrupados
-        </h4>
-
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle">
-
-                <thead>
-                    <tr>
-                        <th>Produto</th>
-                        <th>Cluster</th>
-                        <th>Demanda média</th>
-                        <th>Demanda total</th>
-                        <th>Dias com demanda</th>
-                        <th>Dias sem demanda</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    {% for produto in produtos %}
-
-                    <tr>
-
-                        <td>
-                            {{ produto.nome }}
-                        </td>
-
-                        <td>
-
-                            <span class="cluster-badge bg-light">
-
-                                Cluster {{ produto.cluster }}
-
-                                — {{ produto.cluster_nome }}
-
-                            </span>
-
-                        </td>
-
-                        <td>
-                            {{ produto.demanda_media }}
-                        </td>
-
-                        <td>
-                            {{ produto.demanda_total }}
-                        </td>
-
-                        <td>
-                            {{ produto.dias_com_demanda }}
-                        </td>
-
-                        <td>
-                            {{ produto.percentual_dias_zero }}%
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<script>
-
-    const pontosClusters =
-        JSON.parse(
-            '{{ pontos_clusters|escapejs }}'
-        );
-
-    const datasets = [];
-
-    pontosClusters.forEach(
-        (grupo) => {
-
-            datasets.push({
-
-                label:
-                    'Cluster ' +
-                    grupo.cluster +
-                    ' — ' +
-                    grupo.nome,
-
-                data:
-                    grupo.pontos,
-
-                pointRadius: 7,
-
-                pointHoverRadius: 10,
-
-            });
-
-        }
-    );
-
-
-    const ctx =
-        document
-            .getElementById('clusterChart')
-            .getContext('2d');
-
-
-    new Chart(ctx, {
-
-        type: 'scatter',
-
-        data: {
-            datasets: datasets
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            plugins: {
-
-                tooltip: {
-
-                    callbacks: {
-
-                        label: function(context) {
-
-                            const ponto =
-                                context.raw;
-
-                            return (
-                                ponto.produto +
-                                ' | Cluster ' +
-                                context.dataset.label
-                            );
-
-                        }
-
-                    }
-
-                }
-
-            },
-
-            scales: {
-
-                x: {
-
-                    title: {
-                        display: true,
-                        text: 'PCA 1'
-                    }
-
-                },
-
-                y: {
-
-                    title: {
-                        display: true,
-                        text: 'PCA 2'
-                    }
-
-                }
-
-            }
-
-        }
-
-    });
-
-</script>
-
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="{% static 'js/scripts.js' %}"></script>
+        {{ pontos_clusters|json_script:"pontos-clusters-data" }}
+        <script src="{% static 'js/analise.js' %}"></script>
+    </body>
 </html>

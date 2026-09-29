@@ -135,6 +135,8 @@ def dashboard_analise(request):
     # -------------------------------------------------
 
     contexto = {
+        "cluster_nome_0": nomes_clusters.get(0, ""),
+        "cluster_nome_1": nomes_clusters.get(1, ""),
         "total_produtos": len(dataset_pca),
         "n_clusters": resultado_kmeans["n_clusters"],
         "silhouette_score": round(
