@@ -73,6 +73,18 @@
                             <li class="breadcrumb-item"><a href="/">Painel de Controle</a></li>
                             <li class="breadcrumb-item active">Estoque</li>
                         </ol>
+
+                        {% if messages %}
+                            <div class="messages-container mb-4">
+                                {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+                                    <i class="{% if message.tags == 'error' %}fas fa-exclamation-triangle{% elif message.tags == 'success' %}fas fa-check-circle{% elif message.tags == 'warning' %}fas fa-exclamation-circle{% else %}fas fa-info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         <div class="mb-4 action-strip">
                             <h5>Gerenciar Categorias</h5>
                             <button tabindex="0" aria-pressed="False" class="btn btn-primary" onclick="toggleForm(this, 'categoria-form')">Adicionar Categoria</button>
@@ -108,6 +120,10 @@
                                 <i class="fas fa-plus me-1"></i> Adicionar Produto
                             </div>
                             <div class="card-body">
+                                <div class="alert alert-info py-2 mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Dica:</strong> Se o produto já estiver cadastrado no estoque, utilize o botão <strong>Entrada Produto</strong> para adicionar novas unidades em vez de cadastrá-lo novamente.
+                                </div>
                                 <form method="post" action="/estoque/add_produto/" aria-label="Adicionar Produto">
                                     {% csrf_token %}
                                     <div class="mb-3">
@@ -327,13 +343,6 @@
                             </div>
                         </div>
 
-                        {% if messages %}
-                            {% for message in messages %}
-                            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
-                                {{ message }}
-                            </div>
-                            {% endfor %}
-                        {% endif %}
 
                         <div class="card mb-4">
                             <div class="card-header card-header-modern">
@@ -469,10 +478,13 @@
 
             {% if messages %}
                 document.addEventListener('DOMContentLoaded', function () {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach((alert) => {
+                    const successAlerts = document.querySelectorAll('.alert-success');
+                    successAlerts.forEach((alert) => {
                         setTimeout(() => {
-                            alert.style.display = 'none';
+                            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                            if (bsAlert) {
+                                bsAlert.close();
+                            }
                         }, 5000);
                     });
                 });

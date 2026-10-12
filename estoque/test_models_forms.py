@@ -23,6 +23,18 @@ def test_categoria_rejeita_nome_duplicado_sem_diferenciar_maiusculas():
 
 
 @pytest.mark.django_db
+def test_produto_rejeita_nome_duplicado_na_mesma_categoria(categoria):
+    Produto.objects.create(
+        nome='Cafe', categoria=categoria, preco='12.50', quantidade=1, unidade='kg'
+    )
+
+    with pytest.raises(ValidationError, match='Ja existe um produto'):
+        Produto.objects.create(
+            nome='Cafe', categoria=categoria, preco='13.00', quantidade=1, unidade='kg'
+        )
+
+
+@pytest.mark.django_db
 def test_produto_normaliza_unidade():
     categoria = Categoria.objects.create(nome='Insumos')
     produto = Produto.objects.create(
