@@ -222,18 +222,27 @@ def add_produto(request):
     if request.method == 'POST':
         form = ProdutoForm(request.POST)
         if form.is_valid():
-            criar_produto_com_estoque_inicial(
-                nome=form.cleaned_data['nome'],
-                categoria=form.cleaned_data['categoria'],
-                preco=form.cleaned_data['preco'],
-                unidade=form.cleaned_data['unidade'],
-                quantidade_inicial=form.cleaned_data.get('quantidade_inicial') or 0,
-                usuario=request.user,
-                motivo=form.cleaned_data.get('motivo') or 'Estoque inicial',
-                fornecedor=form.cleaned_data.get('fornecedor') or '',
-                observacao=form.cleaned_data.get('observacao') or '',
-            )
-            messages.success(request, 'Produto cadastrado e estoque inicial registrado.')
+            try:
+                criar_produto_com_estoque_inicial(
+                    nome=form.cleaned_data['nome'],
+                    categoria=form.cleaned_data['categoria'],
+                    preco=form.cleaned_data['preco'],
+                    unidade=form.cleaned_data['unidade'],
+                    quantidade_inicial=form.cleaned_data.get('quantidade_inicial') or 0,
+                    usuario=request.user,
+                    motivo=form.cleaned_data.get('motivo') or 'Estoque inicial',
+                    fornecedor=form.cleaned_data.get('fornecedor') or '',
+                    observacao=form.cleaned_data.get('observacao') or '',
+                )
+            except ValidationError as exc:
+                msg = exc.message if hasattr(exc, 'message') else '; '.join(
+                    m for msgs in exc.message_dict.values() for m in msgs
+                ) if hasattr(exc, 'message_dict') else str(exc)
+                messages.error(request, msg)
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, 'Produto cadastrado e estoque inicial registrado.')
         else:
             messages.error(request, '; '.join(
                 erro for erros in form.errors.values() for erro in erros
@@ -311,9 +320,15 @@ def remover_produto(request):
 
 def remover_categoria(request):
     if request.method == 'POST':
-        categoria_id = request.POST.get('categoria')
-        Categoria.objects.filter(id=categoria_id).delete()
-        messages.success(request, 'Categoria removida com sucesso.')
+        categoria = get_object_or_404(Categoria, id=request.POST.get('categoria'))
+        if categoria.produtos.exists():
+            messages.error(
+                request,
+                'Nao e permitido excluir categoria com produtos cadastrados. Reatribua ou remova os produtos primeiro.'
+            )
+        else:
+            categoria.delete()
+            messages.success(request, 'Categoria removida com sucesso.')
     return redirect('tables')
 
 

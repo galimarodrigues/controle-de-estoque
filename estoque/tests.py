@@ -115,3 +115,52 @@ class EstoqueFlowTests(TestCase):
         movimentacao = Movimentacao.objects.get(produto=produto)
         self.assertEqual(movimentacao.produto_nome, 'Pao')
         self.assertEqual(movimentacao.categoria_nome, 'Bebidas')
+
+    def test_impede_excluir_categoria_com_produto(self):
+        Produto.objects.create(
+            nome='Suco',
+            categoria=self.categoria,
+            preco='8.00',
+            quantidade=1,
+            unidade='l',
+        )
+
+        response = self.client.post(reverse('remover_categoria'), {
+            'categoria': self.categoria.id,
+        }, follow=True)
+
+        self.assertTrue(Categoria.objects.filter(id=self.categoria.id).exists())
+        self.assertContains(response, 'Nao e permitido excluir categoria com produtos')
+
+    def test_permite_excluir_categoria_sem_produto(self):
+        categoria_vazia = Categoria.objects.create(nome='Descartaveis')
+
+        response = self.client.post(reverse('remover_categoria'), {
+            'categoria': categoria_vazia.id,
+        })
+
+        self.assertRedirects(response, reverse('tables'))
+        self.assertFalse(Categoria.objects.filter(id=categoria_vazia.id).exists())
+
+    def test_add_produto_duplicado_informa_usuario_e_orienta_entrada(self):
+        Produto.objects.create(
+            nome='Cafe Especial',
+            categoria=self.categoria,
+            preco='15.00',
+            quantidade=5,
+            unidade='kg',
+        )
+
+        response = self.client.post(reverse('add_produto'), {
+            'nome': 'Cafe Especial',
+            'categoria': self.categoria.id,
+            'preco': '16.00',
+            'unidade': 'kg',
+            'quantidade_inicial': 2,
+        }, follow=True)
+
+        self.assertRedirects(response, reverse('tables'))
+        self.assertContains(response, 'Ja existe um produto com este nome nesta categoria')
+        self.assertContains(response, 'Entrada Produto')
+        self.assertEqual(Produto.objects.filter(nome='Cafe Especial').count(), 1)
+
