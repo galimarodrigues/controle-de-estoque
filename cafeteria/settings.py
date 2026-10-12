@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'estoque',
     'consulta',
     'django_bootstrap5',
+    'analise',
 ]
 
 MIDDLEWARE = [

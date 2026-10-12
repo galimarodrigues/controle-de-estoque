@@ -26,4 +26,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('estoque/', include('estoque.urls')),
     path('consulta/', include('consulta.urls')),
+    path('analise/', include('analise.urls')),
 ]
