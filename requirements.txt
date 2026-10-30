@@ -9,3 +9,8 @@ python-dotenv
 # Tests
 pytest
 pytest-django
+
+# Análise de dados
+numpy
+pandas
+scikit-learn
