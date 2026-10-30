@@ -11616,7 +11616,11 @@ footer .container-fluid {
     width: auto !important;
   }
 
-  .app-brand small {
-    display: none;
+  .app-brand {
+    gap: 0.5rem;
+  }
+
+  .app-brand strong {
+    font-size: 0.85rem;
   }
 }
