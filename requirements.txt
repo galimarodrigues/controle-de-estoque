@@ -1,0 +1,11 @@
+Django>=3.2,<5.0
+psycopg2-binary
+django-bootstrap5
+# Production and deployment
+whitenoise
+gunicorn
+dj-database-url
+python-dotenv
+# Tests
+pytest
+pytest-django
