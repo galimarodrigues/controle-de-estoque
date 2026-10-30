@@ -19,6 +19,19 @@ def dashboard_analise(request):
 
     dataset_produtos = criar_dataset_produtos_kmeans()
 
+    features = [
+        "demanda_media", "desvio_padrao", "demanda_maxima",
+        "dias_com_demanda", "percentual_dias_zero", "percentil_75",
+    ]
+    if dataset_produtos.empty:
+        return render(request, "analise.html", {
+            "mensagem_analise": "Ainda não há movimentações de saída para analisar."
+        })
+    if len(dataset_produtos) < 3 or len(dataset_produtos[features].drop_duplicates()) < 2:
+        return render(request, "analise.html", {
+            "mensagem_analise": "São necessários pelo menos três produtos com demanda e dois perfis diferentes para gerar a análise."
+        })
+
     # -------------------------------------------------
     # 2. Treinar K-Means
     # -------------------------------------------------

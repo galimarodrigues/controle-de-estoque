@@ -68,6 +68,9 @@ def criar_dataset_demanda():
     # Consideramos saída como consumo/demanda.
     saidas = df[df["tipo"] == "saida"].copy()
 
+    if saidas.empty:
+        return saidas
+
     # Demanda observada por dia e produto.
     demanda_diaria = (
         saidas

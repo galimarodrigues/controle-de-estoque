@@ -93,6 +93,9 @@ def avaliar_kmeans(
 
         labels = modelo.fit_predict(X_scaled)
 
+        if not 2 <= len(set(labels)) < len(dataset):
+            continue
+
         silhouette = silhouette_score(
             X_scaled,
             labels,

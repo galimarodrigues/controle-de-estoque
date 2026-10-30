@@ -86,6 +86,9 @@
                             <li class="breadcrumb-item active">Análise de Dados</li>
                         </ol>
 
+                        {% if mensagem_analise %}
+                        <div class="alert alert-info" role="status">{{ mensagem_analise }}</div>
+                        {% else %}
                         <!-- Indicadores principais -->
                         <div class="row g-3 mb-4">
                             <div class="col-xl-3 col-md-6">
@@ -229,6 +232,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div vw class="enabled">
@@ -260,7 +264,9 @@
         <script src="{% static 'js/scripts.js' %}"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 
+        {% if not mensagem_analise %}
         {{ pontos_clusters|json_script:"pontos-clusters-data" }}
         <script src="{% static 'js/analise.js' %}"></script>
+        {% endif %}
     </body>
 </html>
